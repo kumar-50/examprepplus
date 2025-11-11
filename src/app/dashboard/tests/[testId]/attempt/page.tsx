@@ -5,13 +5,13 @@ import { TestAttemptEngine } from '@/components/tests/test-attempt-engine';
 import { TestInstructions } from '@/components/tests/test-instructions';
 
 interface TestAttemptPageProps {
-  params: {
+  params: Promise<{
     testId: string;
-  };
-  searchParams: {
+  }>;
+  searchParams: Promise<{
     attemptId?: string;
     lang?: string;
-  };
+  }>;
 }
 
 export default async function TestAttemptPage({ 
@@ -19,7 +19,9 @@ export default async function TestAttemptPage({
   searchParams 
 }: TestAttemptPageProps) {
   const user = await requireAuth();
-  const test = await getTestById(params.testId);
+  const { testId } = await params;
+  const { attemptId: searchAttemptId, lang } = await searchParams;
+  const test = await getTestById(testId);
 
   if (!test) {
     notFound();
@@ -31,11 +33,11 @@ export default async function TestAttemptPage({
   }
 
   // Get or create attempt
-  let attemptId = searchParams.attemptId;
+  let attemptId = searchAttemptId;
   
   if (!attemptId) {
     // Create new attempt
-    const attempt = await createTestAttempt(params.testId, user.id);
+    const attempt = await createTestAttempt(testId, user.id);
     if (!attempt) {
       throw new Error('Failed to create test attempt');
     }
@@ -44,12 +46,12 @@ export default async function TestAttemptPage({
 
   // Load questions and syllabus
   const [questions, syllabus] = await Promise.all([
-    getTestQuestions(params.testId),
-    getTestSyllabus(params.testId),
+    getTestQuestions(testId),
+    getTestSyllabus(testId),
   ]);
 
   // If no language selected (first visit), show instructions
-  if (!searchParams.lang) {
+  if (!lang) {
     return (
       <TestInstructions
         test={test}

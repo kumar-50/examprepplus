@@ -30,11 +30,11 @@ const reorderQuestionsSchema = z.object({
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAdmin();
-    const { id: testId } = params;
+    const { id: testId } = await params;
 
     // Verify test exists
     const test = await db
@@ -111,11 +111,11 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAdmin();
-    const { id: testId } = params;
+    const { id: testId } = await params;
 
     const body = await request.json();
     const { questions: questionsToAdd } = addQuestionsSchema.parse(body);
@@ -239,11 +239,11 @@ export async function POST(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAdmin();
-    const { id: testId } = params;
+    const { id: testId } = await params;
 
     const body = await request.json();
     const { questionOrders } = reorderQuestionsSchema.parse(body);

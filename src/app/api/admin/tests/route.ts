@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const user = await requireAdmin();
+    const { user } = await requireAdmin();
 
     const body = await request.json();
     const validatedData = createTestSchema.parse(body);
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
+        { error: 'Invalid request data', details: error.issues },
         { status: 400 }
       );
     }

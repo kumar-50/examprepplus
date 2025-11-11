@@ -4,15 +4,16 @@ import { getAttemptReview } from '@/lib/actions/tests';
 import { TestReviewView } from '@/components/tests/test-review-view';
 
 interface TestReviewPageProps {
-  params: {
+  params: Promise<{
     testId: string;
     attemptId: string;
-  };
+  }>;
 }
 
 export default async function TestReviewPage({ params }: TestReviewPageProps) {
   const user = await requireAuth();
-  const review = await getAttemptReview(params.attemptId, user.id);
+  const { attemptId } = await params;
+  const review = await getAttemptReview(attemptId, user.id);
 
   if (!review) {
     notFound();

@@ -10,11 +10,11 @@ import { eq, and, sql } from 'drizzle-orm';
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; questionId: string } }
+  { params }: { params: Promise<{ id: string; questionId: string }> }
 ) {
   try {
     await requireAdmin();
-    const { id: testId, questionId } = params;
+    const { id: testId, questionId } = await params;
 
     // Check if test question exists
     const existing = await db

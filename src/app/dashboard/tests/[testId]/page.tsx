@@ -6,9 +6,9 @@ import { getTestById, getUserAttemptHistory } from '@/lib/actions/tests';
 import { TestDetailView } from '@/components/tests/test-detail-view';
 
 interface TestDetailPageProps {
-  params: {
+  params: Promise<{
     testId: string;
-  };
+  }>;
 }
 
 // Disable caching for this page
@@ -17,15 +17,16 @@ export const revalidate = 0;
 
 export default async function TestDetailPage({ params }: TestDetailPageProps) {
   const user = await requireAuth();
+  const { testId } = await params;
   
-  const test = await getTestById(params.testId);
+  const test = await getTestById(testId);
 
   if (!test) {
     notFound();
   }
 
   // Fetch attempt history
-  const attemptHistory = await getUserAttemptHistory(user.id, params.testId);
+  const attemptHistory = await getUserAttemptHistory(user.id, testId);
 
   return (
     <div>

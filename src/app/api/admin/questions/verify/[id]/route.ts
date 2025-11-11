@@ -16,11 +16,11 @@ const verifyQuestionSchema = z.object({
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await requireAdmin();
-    const { id } = params;
+    const { user } = await requireAdmin();
+    const { id } = await params;
 
     const body = await request.json();
     const { action, rejectionReason } = verifyQuestionSchema.parse(body);
@@ -69,7 +69,7 @@ export async function PATCH(
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
+        { error: 'Invalid request data', details: error.issues },
         { status: 400 }
       );
     }
