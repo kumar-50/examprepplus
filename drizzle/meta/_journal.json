@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1762627704695,
+      "tag": "0000_green_blink",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1731196800000,
+      "tag": "0001_auth_triggers",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1731197000000,
+      "tag": "0002_fix_auth_trigger",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1731197200000,
+      "tag": "0003_add_question_verification",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1731197400000,
+      "tag": "0004_add_draft_status",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1731197600000,
+      "tag": "0005_set_draft_default",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1731197800000,
+      "tag": "0006_remove_draft_status",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1731264000000,
+      "tag": "0007_add_test_fields",
+      "breakpoints": true
+    }
+  ]
+}

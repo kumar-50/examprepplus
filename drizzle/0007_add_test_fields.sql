@@ -1,0 +1,5 @@
+-- Add new columns to tests table
+ALTER TABLE tests ADD COLUMN IF NOT EXISTS banner_image TEXT;
+ALTER TABLE tests ADD COLUMN IF NOT EXISTS average_rating REAL DEFAULT 0;
+ALTER TABLE tests ADD COLUMN IF NOT EXISTS total_ratings INTEGER DEFAULT 0;
+ALTER TABLE tests ADD COLUMN IF NOT EXISTS total_attempts INTEGER DEFAULT 0;

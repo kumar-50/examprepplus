@@ -1,0 +1,119 @@
+import { 
+  LayoutDashboard, 
+  FileText, 
+  Users, 
+  Settings, 
+  BarChart3,
+  CreditCard,
+  Tag,
+  BookOpen,
+  FolderTree,
+  List
+} from 'lucide-react'
+
+export interface NavItem {
+  title: string
+  href: string
+  icon: string // Changed from React component to string
+  badge?: string
+}
+
+export const adminNavItems: NavItem[] = [
+  {
+    title: 'Dashboard',
+    href: '/admin',
+    icon: 'LayoutDashboard',
+  },
+  {
+    title: 'Sections',
+    href: '/admin/sections',
+    icon: 'FolderTree',
+  },
+  {
+    title: 'Topics',
+    href: '/admin/topics',
+    icon: 'List',
+  },
+  {
+    title: 'Questions',
+    href: '/admin/questions',
+    icon: 'FileText',
+  },
+  {
+    title: 'Tests',
+    href: '/admin/tests',
+    icon: 'BookOpen',
+  },
+  {
+    title: 'Users',
+    href: '/admin/users',
+    icon: 'Users',
+  },
+  {
+    title: 'Analytics',
+    href: '/admin/analytics',
+    icon: 'BarChart3',
+  },
+  {
+    title: 'Payments',
+    href: '/admin/payments',
+    icon: 'CreditCard',
+  },
+  {
+    title: 'Coupons',
+    href: '/admin/coupons',
+    icon: 'Tag',
+  },
+  {
+    title: 'Settings',
+    href: '/admin/settings',
+    icon: 'Settings',
+  },
+]
+
+export const userNavItems: NavItem[] = [
+  {
+    title: 'Dashboard',
+    href: '/dashboard',
+    icon: 'LayoutDashboard',
+  },
+  {
+    title: 'My Tests',
+    href: '/dashboard/tests',
+    icon: 'BookOpen',
+  },
+  {
+    title: 'Practice',
+    href: '/practice',
+    icon: 'FileText',
+  },
+  {
+    title: 'Progress',
+    href: '/progress',
+    icon: 'BarChart3',
+  },
+  {
+    title: 'Subscription',
+    href: '/subscription',
+    icon: 'CreditCard',
+  },
+  {
+    title: 'Settings',
+    href: '/settings',
+    icon: 'Settings',
+  },
+]
+
+// Icon map for client components
+export const iconMap = {
+  LayoutDashboard,
+  FileText,
+  Users,
+  Settings,
+  BarChart3,
+  CreditCard,
+  Tag,
+  BookOpen,
+  FolderTree,
+  List,
+} as const
