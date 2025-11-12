@@ -26,10 +26,10 @@ export default async function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen flex overflow-hidden">
+    <div className="h-screen flex overflow-hidden">
       {/* Left Side - Form */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-8 lg:p-12 bg-[var(--bg-primary)] overflow-y-auto">
-        <div className="w-full max-w-md space-y-6">
+        <div className="w-full max-w-md space-y-4 py-8">
           {/* Header */}
           <div className="space-y-2">
             <h1 className="text-2xl sm:text-3xl font-bold text-[var(--heading)]">Create Account</h1>
@@ -42,7 +42,7 @@ export default async function SignUpPage() {
           <SignUpForm redirectTo="/dashboard" />
 
           {/* Footer */}
-          <div className="text-center">
+          <div className="text-center pt-2">
             <p className="text-sm text-[var(--body-text)]">
               Already have an account?{' '}
               <Link href="/login" className="text-[var(--brand-primary)] font-semibold hover:underline">
@@ -54,9 +54,9 @@ export default async function SignUpPage() {
       </div>
 
       {/* Right Side - Illustration */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[var(--brand-light)] to-white items-center justify-center p-12">
-        <div className="max-w-md text-center space-y-6">
-          <div className="relative w-full aspect-square max-w-sm mx-auto">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[var(--brand-light)] to-white items-center justify-center p-8 overflow-y-auto">
+        <div className="max-w-md text-center space-y-4">
+          <div className="relative w-full aspect-square max-w-xs mx-auto">
             <Image
               src="/hero.png"
               alt="Students learning together"
@@ -65,25 +65,25 @@ export default async function SignUpPage() {
               priority
             />
           </div>
-          <div className="space-y-3">
-            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--heading)]">Join Thousands of Aspirants</h2>
-            <p className="text-[var(--body-text)] text-sm sm:text-base">
+          <div className="space-y-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-[var(--heading)]">Join Thousands of Aspirants</h2>
+            <p className="text-[var(--body-text)] text-sm">
               Start your journey to success with ExamPrepPlus
             </p>
           </div>
           
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 pt-4">
+          <div className="grid grid-cols-3 gap-3 pt-2">
             <div className="text-center">
-              <div className="text-2xl font-bold text-[var(--brand-primary)]">50K+</div>
+              <div className="text-xl font-bold text-[var(--brand-primary)]">50K+</div>
               <div className="text-xs text-[var(--muted-text)]">Active Users</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-[var(--brand-primary)]">10K+</div>
+              <div className="text-xl font-bold text-[var(--brand-primary)]">10K+</div>
               <div className="text-xs text-[var(--muted-text)]">Success Stories</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-[var(--brand-primary)]">4.8★</div>
+              <div className="text-xl font-bold text-[var(--brand-primary)]">4.8★</div>
               <div className="text-xs text-[var(--muted-text)]">User Rating</div>
             </div>
           </div>
