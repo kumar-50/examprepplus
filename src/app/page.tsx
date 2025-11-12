@@ -1,18 +1,17 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Badge } from '@/components/ui/badge'
 import { Header } from '@/components/layout/header'
 import { getCurrentUser, getUserProfile } from '@/lib/auth/server'
+import { BookOpen, PenTool, TrendingUp, MessageCircle, Newspaper, Smartphone, Check, X, Twitter, Facebook, Instagram, Linkedin } from 'lucide-react'
 
 export default async function Home() {
-  // Check if user is already authenticated
   const user = await getCurrentUser()
   
   if (user) {
-    // Get user profile to check role
     const profile = await getUserProfile(user.id)
     
     if (profile?.role === 'admin') {
@@ -23,309 +22,410 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       <Header />
+      
       {/* Hero Section */}
-      <section aria-labelledby="hero-heading" className="flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8 min-h-[80vh]">
-        <div className="max-w-4xl w-full text-center space-y-8">
-          <h1 id="hero-heading" className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl">
-            Master Your Certification Exams
-          </h1>
+      <section className="relative px-4 py-12 sm:py-16 lg:py-20 xl:py-24 sm:px-6 lg:px-8 bg-gradient-to-b from-[var(--brand-light)] to-[var(--bg-primary)]">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            <div className="space-y-6 sm:space-y-8">
+              <Badge variant="secondary" className="bg-[var(--brand-light)] text-[var(--brand-primary)] hover:bg-[var(--brand-light)] border-none px-4 py-2 text-sm">
+                Your Success Story Starts Here
+              </Badge>
+              
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-tight text-[var(--heading)]">
+                Ace Your Government Exams with{' '}
+                <span className="text-[var(--brand-primary)]">Confidence.</span>
+              </h1>
+              
+              <p className="text-base sm:text-lg lg:text-xl text-[var(--body-text)] max-w-xl">
+                Join thousands of aspirants preparing with our mock tests, live classes, and expert-curated content. Your dream job is closer than you think.
+              </p>
+              
+              <div className="pt-2">
+                <Button asChild size="lg" className="bg-[var(--warning)] hover:bg-[var(--warning)]/90 text-white text-base px-6 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all">
+                  <Link href="/signup">
+                    Start Free Trial →
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <div className="relative aspect-square w-full max-w-2xl mx-auto lg:ml-auto">
+                <Image
+                  src="/hero.png"
+                  alt="Students studying together with educational materials"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="px-4 py-12 sm:py-16 lg:py-20 sm:px-6 lg:px-8 bg-[var(--bg-secondary)]">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 text-[var(--heading)]">Why Choose ExamPrepPlus?</h2>
+            <p className="text-base sm:text-lg text-[var(--body-text)] max-w-2xl mx-auto px-4">
+              Everything you need to succeed, all in one place. We provide the tools, you bring the ambition.
+            </p>
+          </div>
           
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto sm:text-xl">
-            Practice with real-world questions, track your progress, and ace your certification 
-            exams with confidence. Built for professionals, by professionals.
-          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            <Card className="border-[var(--borders)] bg-[var(--bg-primary)] shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[var(--brand-light)] flex items-center justify-center mb-3 sm:mb-4">
+                  <BookOpen className="w-6 h-6 sm:w-7 sm:h-7 text-[var(--brand-primary)]" />
+                </div>
+                <CardTitle className="text-lg sm:text-xl text-[var(--heading)]">Comprehensive Study Material</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-[var(--body-text)]">
+                  Access a vast library of notes, e-books, and video lectures updated with the latest syllabus.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-[var(--borders)] bg-[var(--bg-primary)] shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-amber-50 flex items-center justify-center mb-3 sm:mb-4">
+                  <PenTool className="w-6 h-6 sm:w-7 sm:h-7 text-[var(--warning)]" />
+                </div>
+                <CardTitle className="text-lg sm:text-xl text-[var(--heading)]">Realistic Mock Tests</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-[var(--body-text)]">
+                  Simulate the real exam environment with full-length mock tests and get detailed performance analysis.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-[var(--borders)] bg-[var(--bg-primary)] shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[var(--brand-light)] flex items-center justify-center mb-3 sm:mb-4">
+                  <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-[var(--brand-primary)]" />
+                </div>
+                <CardTitle className="text-lg sm:text-xl text-[var(--heading)]">Personalized Study Plans</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-[var(--body-text)]">
+                  Our AI-powered engine creates a customized learning path based on your strengths and weaknesses.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-[var(--borders)] bg-[var(--bg-primary)] shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-amber-50 flex items-center justify-center mb-3 sm:mb-4">
+                  <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7 text-[var(--warning)]" />
+                </div>
+                <CardTitle className="text-lg sm:text-xl text-[var(--heading)]">Doubt Clearing Sessions</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-[var(--body-text)]">
+                  Get your questions answered by expert educators in live doubt-clearing sessions and forums.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-[var(--borders)] bg-[var(--bg-primary)] shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[var(--brand-light)] flex items-center justify-center mb-3 sm:mb-4">
+                  <Newspaper className="w-6 h-6 sm:w-7 sm:h-7 text-[var(--brand-primary)]" />
+                </div>
+                <CardTitle className="text-lg sm:text-xl text-[var(--heading)]">Current Affairs Updates</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-[var(--body-text)]">
+                  Stay ahead with daily and weekly updates on current affairs, crucial for every government exam.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-[var(--borders)] bg-[var(--bg-primary)] shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-amber-50 flex items-center justify-center mb-3 sm:mb-4">
+                  <Smartphone className="w-6 h-6 sm:w-7 sm:h-7 text-[var(--warning)]" />
+                </div>
+                <CardTitle className="text-lg sm:text-xl text-[var(--heading)]">Learn On The Go</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-[var(--body-text)]">
+                  Our platform is fully responsive. Study anytime, anywhere, on any device without hassle.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section id="how-it-works" className="px-4 py-12 sm:py-16 lg:py-20 sm:px-6 lg:px-8 bg-[var(--bg-primary)]">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 text-[var(--heading)]">Get Started in 3 Simple Steps</h2>
+            <p className="text-base sm:text-lg text-[var(--body-text)] px-4">
+              Your journey to success is just a few clicks away. Follow our simple process.
+            </p>
+          </div>
           
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-            <Button asChild size="lg" className="w-full sm:w-auto">
-              <Link href="/auth-test">Get Started</Link>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+            <div className="text-center space-y-3 sm:space-y-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[var(--brand-primary)] text-white flex items-center justify-center text-2xl sm:text-3xl font-bold mx-auto">
+                1
+              </div>
+              <h3 className="text-xl sm:text-2xl font-semibold px-4 text-[var(--heading)]">Create Your Account</h3>
+              <p className="text-sm sm:text-base text-[var(--body-text)] px-4">
+                Sign up for free and tell us which exam you're preparing for to personalize your experience.
+              </p>
+            </div>
+
+            <div className="text-center space-y-3 sm:space-y-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[var(--brand-primary)] text-white flex items-center justify-center text-2xl sm:text-3xl font-bold mx-auto">
+                2
+              </div>
+              <h3 className="text-xl sm:text-2xl font-semibold px-4 text-[var(--heading)]">Choose Your Plan</h3>
+              <p className="text-sm sm:text-base text-[var(--body-text)] px-4">
+                Select a plan that fits your needs. Start with a free plan or unlock all features with Pro.
+              </p>
+            </div>
+
+            <div className="text-center space-y-3 sm:space-y-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[var(--brand-primary)] text-white flex items-center justify-center text-2xl sm:text-3xl font-bold mx-auto">
+                3
+              </div>
+              <h3 className="text-xl sm:text-2xl font-semibold px-4 text-[var(--heading)]">Start Acing It!</h3>
+              <p className="text-sm sm:text-base text-[var(--body-text)] px-4">
+                Dive into our resources, follow your study plan, and start your journey towards success.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="px-4 py-12 sm:py-16 lg:py-20 sm:px-6 lg:px-8 bg-[var(--bg-secondary)]">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 px-4 text-[var(--heading)]">Choose Your Plan</h2>
+            <p className="text-base sm:text-lg text-[var(--body-text)] px-4">
+              Simple, transparent pricing for every aspirant.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto mb-8">
+            {/* Basic Plan */}
+            <Card className="relative md:scale-100 hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="text-xl sm:text-2xl">Basic</CardTitle>
+                <CardDescription className="text-sm sm:text-base">For a quick start.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 sm:space-y-6">
+                <div className="space-y-1 sm:space-y-2">
+                  <div className="text-3xl sm:text-4xl font-bold">
+                    ₹499<span className="text-base font-normal text-muted-foreground"> / 3 months</span>
+                  </div>
+                </div>
+                
+                <ul className="space-y-2 sm:space-y-3">
+                  <li className="flex items-start gap-2 sm:gap-3">
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--success)] mt-0.5 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm text-[var(--body-text)]">10 Full Mock Tests</span>
+                  </li>
+                  <li className="flex items-start gap-2 sm:gap-3">
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--success)] mt-0.5 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm text-[var(--body-text)]">Basic Performance Analytics</span>
+                  </li>
+                  <li className="flex items-start gap-2 sm:gap-3">
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--success)] mt-0.5 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm text-[var(--body-text)]">500+ Practice Questions</span>
+                  </li>
+                </ul>
+
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/signup">Choose Plan</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Pro Plan */}
+            <Card className="relative border-[var(--brand-primary)] shadow-lg md:scale-105 hover:shadow-xl transition-shadow bg-[var(--bg-primary)]">
+              <div className="absolute -top-3 sm:-top-4 left-1/2 -translate-x-1/2 z-10">
+                <Badge className="bg-[var(--brand-primary)] text-white px-3 sm:px-4 py-1 text-xs sm:text-sm whitespace-nowrap">Most Popular</Badge>
+              </div>
+              <CardHeader className="pt-6 sm:pt-8">
+                <CardTitle className="text-xl sm:text-2xl text-[var(--brand-primary)]">Pro</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-[var(--body-text)]">For comprehensive prep.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 sm:space-y-6">
+                <div className="space-y-1 sm:space-y-2">
+                  <div className="text-3xl sm:text-4xl font-bold text-[var(--heading)]">
+                    ₹999<span className="text-base font-normal text-[var(--muted-text)]"> / 6 months</span>
+                  </div>
+                </div>
+                
+                <ul className="space-y-2 sm:space-y-3">
+                  <li className="flex items-start gap-2 sm:gap-3">
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--success)] mt-0.5 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm text-[var(--body-text)]">25 Full Mock Tests</span>
+                  </li>
+                  <li className="flex items-start gap-2 sm:gap-3">
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--success)] mt-0.5 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm text-[var(--body-text)]">Advanced Performance Analytics</span>
+                  </li>
+                  <li className="flex items-start gap-2 sm:gap-3">
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--success)] mt-0.5 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm text-[var(--body-text)]">2000+ Practice Questions</span>
+                  </li>
+                  <li className="flex items-start gap-2 sm:gap-3">
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--success)] mt-0.5 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm text-[var(--body-text)]">Topic-wise Tests</span>
+                  </li>
+                </ul>
+
+                <Button className="w-full bg-[var(--brand-primary)] hover:bg-[var(--brand-dark)]" asChild>
+                  <Link href="/signup">Choose Plan</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Premium Plan */}
+            <Card className="relative md:scale-100 hover:shadow-lg transition-shadow border-[var(--borders)] bg-[var(--bg-primary)]">
+              <CardHeader>
+                <CardTitle className="text-xl sm:text-2xl text-[var(--heading)]">Premium</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-[var(--body-text)]">For ultimate mastery.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 sm:space-y-6">
+                <div className="space-y-1 sm:space-y-2">
+                  <div className="text-3xl sm:text-4xl font-bold text-[var(--heading)]">
+                    ₹1499<span className="text-base font-normal text-[var(--muted-text)]"> / 12 months</span>
+                  </div>
+                </div>
+                
+                <ul className="space-y-2 sm:space-y-3">
+                  <li className="flex items-start gap-2 sm:gap-3">
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--success)] mt-0.5 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm text-[var(--body-text)]">50 Full Mock Tests</span>
+                  </li>
+                  <li className="flex items-start gap-2 sm:gap-3">
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--success)] mt-0.5 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm text-[var(--body-text)]">All Pro Features</span>
+                  </li>
+                  <li className="flex items-start gap-2 sm:gap-3">
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--success)] mt-0.5 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm text-[var(--body-text)]">Doubt Solving Sessions</span>
+                  </li>
+                </ul>
+
+                <Button variant="outline" className="w-full border-[var(--borders)]" asChild>
+                  <Link href="/signup">Choose Plan</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="px-4 py-8 sm:py-16 lg:py-20 sm:px-6 lg:px-8 bg-[var(--bg-primary)]">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-[var(--heading)] rounded-2xl lg:rounded-3xl px-6 sm:px-12 lg:px-16 py-12 sm:py-16 lg:py-20 text-center text-white">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-4 sm:mb-6">
+              Ready to Start Your Success Story?
+            </h2>
+            <p className="text-sm sm:text-base lg:text-lg text-gray-300 max-w-3xl mx-auto mb-6 sm:mb-8 leading-relaxed">
+              Join thousands of other aspirants and take the first step towards your dream government job today. Your preparation journey starts here.
+            </p>
+            <Button asChild size="lg" className="bg-[var(--success)] hover:bg-[var(--success)]/90 text-white text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 rounded-xl shadow-lg hover:shadow-xl transition-all">
+              <Link href="/signup">
+                Sign Up for Free 🚀
+              </Link>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section aria-labelledby="features-heading" className="px-4 py-16 sm:px-6 lg:px-8 bg-muted/50">
-        <div className="max-w-6xl mx-auto">
-          <h2 id="features-heading" className="text-3xl font-bold text-center mb-12">Why Choose ExamPrepPlus?</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Real Exam Questions</CardTitle>
-                <CardDescription>Practice with authentic questions from actual certification exams</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Our question bank is curated from real certification exams, ensuring you're prepared for what you'll actually face.
-                </p>
-              </CardContent>
-            </Card>
+      {/* Footer */}
+      <footer id="contact" className="bg-[#1a1d2e] text-white px-4 py-8 sm:py-12 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-12 lg:gap-16 mb-6 sm:mb-8">
+            {/* Brand */}
+            <div className="space-y-3 sm:space-y-4">
+              <h3 className="font-bold text-xl sm:text-2xl">
+                <span className="text-white">ExamPrep</span>
+                <span className="text-secondary">+</span>
+              </h3>
+              <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
+                Your partner in success for government examinations.
+              </p>
+            </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Track Your Progress</CardTitle>
-                <CardDescription>Monitor your improvement with detailed analytics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  See which topics you've mastered and where you need more practice with comprehensive progress tracking.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Timed Practice Tests</CardTitle>
-                <CardDescription>Simulate real exam conditions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Take full-length practice exams under timed conditions to build confidence and test-taking skills.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Detailed Explanations</CardTitle>
-                <CardDescription>Learn from every answer</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Each question includes thorough explanations to help you understand the concepts, not just memorize answers.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Custom Study Plans</CardTitle>
-                <CardDescription>Personalized learning paths</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Focus on your weak areas with AI-driven study recommendations tailored to your performance.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Mobile & Desktop</CardTitle>
-                <CardDescription>Study anywhere, anytime</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Access your study materials on any device with our fully responsive platform.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Problem vs Solution */}
-      <section aria-labelledby="solution-heading" className="px-4 py-16 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <h2 id="solution-heading" className="text-3xl font-bold text-center mb-12">The Smart Way to Study</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <h3 className="text-2xl font-semibold text-destructive">The Old Way</h3>
-              <ul className="space-y-3">
-                <li className="flex gap-3">
-                  <span className="text-destructive">✗</span>
-                  <span>Expensive bootcamps and training courses</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="text-destructive">✗</span>
-                  <span>Outdated study materials and practice tests</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="text-destructive">✗</span>
-                  <span>No way to track progress or weak areas</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="text-destructive">✗</span>
-                  <span>Generic study plans that don't adapt</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="text-destructive">✗</span>
-                  <span>Limited practice questions</span>
-                </li>
+            {/* Quick Links */}
+            <div>
+              <h4 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">Quick Links</h4>
+              <ul className="space-y-2 sm:space-y-3 text-gray-400 text-sm sm:text-base">
+                <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
+                <li><Link href="#features" className="hover:text-white transition-colors">Features</Link></li>
+                <li><Link href="#pricing" className="hover:text-white transition-colors">Pricing</Link></li>
               </ul>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="text-2xl font-semibold text-primary">The ExamPrepPlus Way</h3>
-              <ul className="space-y-3">
-                <li className="flex gap-3">
-                  <span className="text-primary">✓</span>
-                  <span>Affordable, pay-as-you-go pricing</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="text-primary">✓</span>
-                  <span>Continuously updated question bank</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="text-primary">✓</span>
-                  <span>Advanced analytics and progress tracking</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="text-primary">✓</span>
-                  <span>AI-powered personalized study recommendations</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="text-primary">✓</span>
-                  <span>Unlimited practice with thousands of questions</span>
-                </li>
+            {/* Support */}
+            <div>
+              <h4 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">Support</h4>
+              <ul className="space-y-2 sm:space-y-3 text-gray-400 text-sm sm:text-base">
+                <li><Link href="#" className="hover:text-white transition-colors">FAQ</Link></li>
+                <li><Link href="#contact" className="hover:text-white transition-colors">Contact Us</Link></li>
+                <li><Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link></li>
               </ul>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Pricing Teaser */}
-      <section aria-labelledby="pricing-heading" className="px-4 py-16 sm:px-6 lg:px-8 bg-muted/50">
-        <div className="max-w-4xl mx-auto">
-          <h2 id="pricing-heading" className="text-3xl font-bold text-center mb-4">Simple, Transparent Pricing</h2>
-          <p className="text-center text-muted-foreground mb-12">Start free, upgrade when you're ready</p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  Free
-                  <Badge variant="secondary">No Credit Card</Badge>
-                </CardTitle>
-                <CardDescription>Perfect for getting started</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-3xl font-bold">$0</div>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex gap-2">
-                    <span className="text-primary">✓</span>
-                    <span>20 practice questions per day</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-primary">✓</span>
-                    <span>Basic progress tracking</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-primary">✓</span>
-                    <span>Community support</span>
-                  </li>
-                </ul>
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/auth-test">Start Free</Link>
-                </Button>
-              </CardContent>
-            </Card>
+          {/* Bottom Row - Copyright & Social Media */}
+          <div className="border-t border-gray-700 pt-6 sm:pt-8">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6">
+              {/* Copyright */}
+              <div className="text-gray-400 text-xs sm:text-sm text-center sm:text-left">
+                © 2025 ExamPrepPlus. All rights reserved.
+              </div>
 
-            <Card className="border-primary">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  Premium
-                  <Badge>Most Popular</Badge>
-                </CardTitle>
-                <CardDescription>For serious exam prep</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-3xl font-bold">$29<span className="text-lg font-normal text-muted-foreground">/month</span></div>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex gap-2">
-                    <span className="text-primary">✓</span>
-                    <span>Unlimited practice questions</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-primary">✓</span>
-                    <span>Full analytics and insights</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-primary">✓</span>
-                    <span>Timed practice exams</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-primary">✓</span>
-                    <span>Priority support</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-primary">✓</span>
-                    <span>Custom study plans</span>
-                  </li>
-                </ul>
-                <Button asChild className="w-full">
-                  <Link href="/auth-test">Upgrade to Premium</Link>
-                </Button>
-              </CardContent>
-            </Card>
+              {/* Social Media Icons */}
+              <div className="flex gap-3 sm:gap-4">
+                <a 
+                  href="https://twitter.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-700/50 hover:bg-gray-600 flex items-center justify-center transition-colors"
+                  aria-label="Twitter"
+                >
+                  <Twitter className="w-4 h-4 sm:w-5 sm:h-5" />
+                </a>
+                <a 
+                  href="https://facebook.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-700/50 hover:bg-gray-600 flex items-center justify-center transition-colors"
+                  aria-label="Facebook"
+                >
+                  <Facebook className="w-4 h-4 sm:w-5 sm:h-5" />
+                </a>
+                <a 
+                  href="https://instagram.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-700/50 hover:bg-gray-600 flex items-center justify-center transition-colors"
+                  aria-label="Instagram"
+                >
+                  <Instagram className="w-4 h-4 sm:w-5 sm:h-5" />
+                </a>
+                <a 
+                  href="https://linkedin.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-700/50 hover:bg-gray-600 flex items-center justify-center transition-colors"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin className="w-4 h-4 sm:w-5 sm:h-5" />
+                </a>
+              </div>
+            </div>
           </div>
         </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section aria-labelledby="faq-heading" className="px-4 py-16 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto">
-          <h2 id="faq-heading" className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
-          
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="item-1">
-              <AccordionTrigger>How does ExamPrepPlus compare to traditional study materials?</AccordionTrigger>
-              <AccordionContent>
-                ExamPrepPlus offers interactive practice with immediate feedback, detailed analytics, and personalized study recommendations—features you won't find in traditional books or static study guides. Our question bank is continuously updated to reflect current exam content.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-2">
-              <AccordionTrigger>Can I cancel my subscription anytime?</AccordionTrigger>
-              <AccordionContent>
-                Yes! There are no long-term contracts. You can cancel your premium subscription at any time, and you'll continue to have access until the end of your billing period.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-3">
-              <AccordionTrigger>What certifications do you support?</AccordionTrigger>
-              <AccordionContent>
-                We currently support a wide range of IT certifications including AWS, Azure, CompTIA, CISSP, and many more. Our catalog is constantly expanding based on user demand.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-4">
-              <AccordionTrigger>Do you offer a money-back guarantee?</AccordionTrigger>
-              <AccordionContent>
-                Yes! We offer a 30-day money-back guarantee. If you're not satisfied with ExamPrepPlus within your first month, contact our support team for a full refund.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-5">
-              <AccordionTrigger>Can I use ExamPrepPlus on mobile devices?</AccordionTrigger>
-              <AccordionContent>
-                Absolutely! ExamPrepPlus is fully responsive and works seamlessly on smartphones, tablets, and desktop computers. Study anywhere, anytime.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-6">
-              <AccordionTrigger>How often are questions updated?</AccordionTrigger>
-              <AccordionContent>
-                We update our question bank regularly to ensure alignment with the latest exam objectives. Premium members get early access to new questions and content updates.
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </div>
-      </section>
-
-      {/* Footer CTA */}
-      <section aria-labelledby="cta-heading" className="px-4 py-16 sm:px-6 lg:px-8 bg-primary text-primary-foreground">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <h2 id="cta-heading" className="text-3xl font-bold">Ready to Ace Your Certification?</h2>
-          <p className="text-lg opacity-90">Join thousands of professionals who have passed their exams with ExamPrepPlus</p>
-          <Button asChild size="lg" variant="secondary">
-            <Link href="/auth-test">Start Your Free Trial</Link>
-          </Button>
-        </div>
-      </section>
+      </footer>
     </div>
   )
 }
