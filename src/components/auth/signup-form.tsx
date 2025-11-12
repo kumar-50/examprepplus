@@ -97,7 +97,7 @@ export function SignUpForm({ onSuccess, redirectTo = '/' }: SignUpFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
@@ -109,9 +109,13 @@ export function SignUpForm({ onSuccess, redirectTo = '/' }: SignUpFormProps) {
           name="fullName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
+              <FormLabel className="text-[var(--heading)]">Full Name</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
+                <Input 
+                  placeholder="John Doe" 
+                  className="h-11"
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -123,9 +127,14 @@ export function SignUpForm({ onSuccess, redirectTo = '/' }: SignUpFormProps) {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel className="text-[var(--heading)]">Email Address</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="your@email.com" {...field} />
+                <Input 
+                  type="email" 
+                  placeholder="you@example.com" 
+                  className="h-11"
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -137,9 +146,14 @@ export function SignUpForm({ onSuccess, redirectTo = '/' }: SignUpFormProps) {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel className="text-[var(--heading)]">Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
+                <Input 
+                  type="password" 
+                  placeholder="Create a strong password" 
+                  className="h-11"
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -151,23 +165,32 @@ export function SignUpForm({ onSuccess, redirectTo = '/' }: SignUpFormProps) {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
+              <FormLabel className="text-[var(--heading)]">Confirm Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
+                <Input 
+                  type="password" 
+                  placeholder="Confirm your password" 
+                  className="h-11"
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button 
+          type="submit" 
+          className="w-full h-11 bg-[var(--brand-primary)] hover:bg-[var(--brand-dark)] text-white font-medium" 
+          disabled={loading}
+        >
           {loading ? (
             <>
               <Spinner className="mr-2 h-4 w-4" />
               Creating account...
             </>
           ) : (
-            'Sign Up'
+            'Create Account'
           )}
         </Button>
       </form>

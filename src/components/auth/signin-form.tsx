@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -104,7 +105,7 @@ export function SignInForm({ onSuccess, redirectTo = '/' }: SignInFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {loading && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-4">
@@ -126,9 +127,14 @@ export function SignInForm({ onSuccess, redirectTo = '/' }: SignInFormProps) {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel className="text-[var(--heading)]">Email Address</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="your@email.com" {...field} />
+                <Input 
+                  type="email" 
+                  placeholder="you@example.com" 
+                  className="h-11"
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -140,16 +146,33 @@ export function SignInForm({ onSuccess, redirectTo = '/' }: SignInFormProps) {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <div className="flex items-center justify-between">
+                <FormLabel className="text-[var(--heading)]">Password</FormLabel>
+                <Link 
+                  href="/forgot-password" 
+                  className="text-sm text-[var(--brand-primary)] hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
+                <Input 
+                  type="password" 
+                  placeholder="Enter your password" 
+                  className="h-11"
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button 
+          type="submit" 
+          className="w-full h-11 bg-[var(--brand-primary)] hover:bg-[var(--brand-dark)] text-white font-medium" 
+          disabled={loading}
+        >
           {loading ? (
             <>
               <Spinner className="mr-2 h-4 w-4" />

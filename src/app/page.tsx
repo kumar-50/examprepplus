@@ -332,7 +332,7 @@ export default async function Home() {
             </p>
             <Button asChild size="lg" className="bg-[var(--success)] hover:bg-[var(--success)]/90 text-white text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 rounded-xl shadow-lg hover:shadow-xl transition-all">
               <Link href="/signup">
-                Sign Up for Free 🚀
+                Start a free trail 🚀
               </Link>
             </Button>
           </div>

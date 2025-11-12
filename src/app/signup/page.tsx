@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { redirect } from 'next/navigation'
 import { SignUpForm } from '@/components/auth/signup-form'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { getCurrentUser, getUserProfile } from '@/lib/auth/server'
 
 export const metadata: Metadata = {
@@ -26,26 +26,69 @@ export default async function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Create an account</CardTitle>
-          <CardDescription>
-            Enter your information to get started with ExamPrepPlus
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="min-h-screen flex overflow-hidden">
+      {/* Left Side - Form */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-8 lg:p-12 bg-[var(--bg-primary)] overflow-y-auto">
+        <div className="w-full max-w-md space-y-6">
+          {/* Header */}
+          <div className="space-y-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--heading)]">Create Account</h1>
+            <p className="text-sm sm:text-base text-[var(--body-text)]">
+              Start your exam preparation journey today
+            </p>
+          </div>
+
+          {/* Form */}
           <SignUpForm redirectTo="/dashboard" />
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <Link href="/login" className="underline underline-offset-4 hover:text-primary">
-              Sign in
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
+
+          {/* Footer */}
+          <div className="text-center">
+            <p className="text-sm text-[var(--body-text)]">
+              Already have an account?{' '}
+              <Link href="/login" className="text-[var(--brand-primary)] font-semibold hover:underline">
+                Sign In
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side - Illustration */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[var(--brand-light)] to-white items-center justify-center p-12">
+        <div className="max-w-md text-center space-y-6">
+          <div className="relative w-full aspect-square max-w-sm mx-auto">
+            <Image
+              src="/hero.png"
+              alt="Students learning together"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+          <div className="space-y-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--heading)]">Join Thousands of Aspirants</h2>
+            <p className="text-[var(--body-text)] text-sm sm:text-base">
+              Start your journey to success with ExamPrepPlus
+            </p>
+          </div>
+          
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-4 pt-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-[var(--brand-primary)]">50K+</div>
+              <div className="text-xs text-[var(--muted-text)]">Active Users</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-[var(--brand-primary)]">10K+</div>
+              <div className="text-xs text-[var(--muted-text)]">Success Stories</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-[var(--brand-primary)]">4.8★</div>
+              <div className="text-xs text-[var(--muted-text)]">User Rating</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
