@@ -59,17 +59,33 @@ export default async function LoginPage() {
           <div className="relative w-full aspect-square max-w-sm mx-auto">
             <Image
               src="/hero.png"
-              alt="Student learning"
+              alt="Students learning together"
               fill
               className="object-contain"
               priority
             />
           </div>
           <div className="space-y-3">
-            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--heading)]">Welcome Back!</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--heading)]">Join Thousands of Aspirants</h2>
             <p className="text-[var(--body-text)] text-sm sm:text-base">
-              Continue your journey to exam success
+              Start your journey to success with ExamPrepPlus
             </p>
+          </div>
+          
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-4 pt-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-[var(--brand-primary)]">50K+</div>
+              <div className="text-xs text-[var(--muted-text)]">Active Users</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-[var(--brand-primary)]">10K+</div>
+              <div className="text-xs text-[var(--muted-text)]">Success Stories</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-[var(--brand-primary)]">4.8★</div>
+              <div className="text-xs text-[var(--muted-text)]">User Rating</div>
+            </div>
           </div>
         </div>
       </div>
