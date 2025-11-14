@@ -27,7 +27,7 @@ export interface ValidationError {
   row: number;
   field: string;
   reason: string;
-  data?: CSVRow; // Include the raw data so it can be edited
+  data?: Partial<CSVRow>; // Include the raw data so it can be edited
 }
 
 export interface ParseResult {

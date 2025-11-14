@@ -47,7 +47,7 @@ export function DashboardLayout({ children, navItems, title, user }: DashboardLa
         <div className={cn("flex h-16 shrink-0 items-center border-b px-4", sidebarCollapsed && "justify-center")}>
           {!sidebarCollapsed && (
             <Link href="/" className="flex items-center gap-2 font-semibold">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-black">
                 <span className="text-sm font-bold">E</span>
               </div>
               <span className="text-lg">ExamPrepPlus</span>
@@ -55,7 +55,7 @@ export function DashboardLayout({ children, navItems, title, user }: DashboardLa
           )}
           {sidebarCollapsed && (
             <Link href="/" className="flex items-center justify-center">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-black">
                 <span className="text-sm font-bold">E</span>
               </div>
             </Link>
@@ -74,7 +74,7 @@ export function DashboardLayout({ children, navItems, title, user }: DashboardLa
         <div className="flex-1 overflow-y-auto py-4">
           {!sidebarCollapsed && (
             <div className="mb-2 px-6">
-              <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/60">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 {title}
               </p>
             </div>
@@ -87,21 +87,21 @@ export function DashboardLayout({ children, navItems, title, user }: DashboardLa
           {!sidebarCollapsed && (
             <div className="p-4">
               <div className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-sidebar-accent">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500 text-black">
                   <span className="text-sm font-semibold">
                     {user.fullName?.charAt(0) || user.email.charAt(0).toUpperCase()}
                   </span>
                 </div>
                 <div className="flex-1 overflow-hidden">
                   <p className="truncate text-sm font-medium text-sidebar-foreground">{user.fullName || 'User'}</p>
-                  <p className="truncate text-xs text-sidebar-foreground/60">{user.email}</p>
+                  <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                 </div>
               </div>
             </div>
           )}
           {sidebarCollapsed && (
             <div className="flex items-center justify-center p-4">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500 text-black">
                 <span className="text-sm font-semibold">
                   {user.fullName?.charAt(0) || user.email.charAt(0).toUpperCase()}
                 </span>

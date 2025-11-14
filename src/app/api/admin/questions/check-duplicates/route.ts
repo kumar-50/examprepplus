@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         )
         .limit(1);
 
-      if (existingQuestion.length > 0) {
+      if (existingQuestion.length > 0 && existingQuestion[0]) {
         duplicates.push({
           rowNumber: question.rowNumber,
           questionText: question.questionText,

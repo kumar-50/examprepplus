@@ -330,7 +330,7 @@ export default function TestPreviewPage() {
           <CardTitle>Questions ({test.totalQuestions})</CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue={sectionQuestions[0]?.sectionId}>
+          <Tabs defaultValue={sectionQuestions[0]?.sectionId ?? ''}>
             <TabsList className="w-full grid" style={{ gridTemplateColumns: `repeat(${sectionQuestions.length}, 1fr)` }}>
               {sectionQuestions.map((section) => (
                 <TabsTrigger key={section.sectionId} value={section.sectionId}>

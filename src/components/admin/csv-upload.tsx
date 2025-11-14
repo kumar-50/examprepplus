@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { parseCSV, ParsedQuestion, ValidationError, downloadTemplate } from '@/lib/csv-parser';
+import { parseCSV, ParsedQuestion, ValidationError, CSVRow, downloadTemplate } from '@/lib/csv-parser';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -39,19 +39,6 @@ interface DuplicateQuestion extends ParsedQuestion {
   existingQuestionId: string;
 }
 
-interface ErrorWithData extends ValidationError {
-  data?: {
-    question_text?: string;
-    option_a?: string;
-    option_b?: string;
-    option_c?: string;
-    option_d?: string;
-    correct_index?: string;
-    section_name?: string;
-    year?: string;
-  };
-}
-
 export function CSVUploadComponent() {
   const router = useRouter();
   const { toast } = useToast();
@@ -60,7 +47,7 @@ export function CSVUploadComponent() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [parsedQuestions, setParsedQuestions] = useState<ParsedQuestion[]>([]);
-  const [errors, setErrors] = useState<ErrorWithData[]>([]);
+  const [errors, setErrors] = useState<ValidationError[]>([]);
   const [duplicates, setDuplicates] = useState<DuplicateQuestion[]>([]);
   const [totalRows, setTotalRows] = useState(0);
   const [showValidationSheet, setShowValidationSheet] = useState(false);
@@ -256,6 +243,7 @@ export function CSVUploadComponent() {
   const handleFixError = (errorIndex: number, field: string, value: string) => {
     const newEditing = new Map(editingErrors);
     const errorRow = errors[errorIndex];
+    if (!errorRow) return;
     const currentEdit = newEditing.get(errorIndex) || { ...errorRow.data };
     currentEdit[field] = value;
     newEditing.set(errorIndex, currentEdit);
@@ -264,6 +252,7 @@ export function CSVUploadComponent() {
 
   const handleSaveErrorFix = (errorIndex: number) => {
     const errorRow = errors[errorIndex];
+    if (!errorRow) return;
     const fixedData = editingErrors.get(errorIndex);
     
     if (!fixedData) return;
