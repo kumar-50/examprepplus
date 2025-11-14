@@ -19,7 +19,11 @@
     "migrate:prod": "tsx src/scripts/migrate.ts",
     "verify-triggers": "dotenv -e .env.local -- tsx src/scripts/verify-triggers.ts",
     "check-user": "dotenv -e .env.local -- tsx src/scripts/check-user.ts",
-    "make-admin": "dotenv -e .env.local -- tsx src/scripts/make-user-admin.ts"
+    "make-admin": "dotenv -e .env.local -- tsx src/scripts/make-user-admin.ts",
+    "seed:csv": "node seed-from-csv.js",
+    "csv:convert": "node scripts/csv-to-json.js",
+    "seed:json": "node scripts/seed-from-json.js",
+    "seed": "npm run csv:convert && npm run seed:json"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -55,6 +59,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.80.0",
+    "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

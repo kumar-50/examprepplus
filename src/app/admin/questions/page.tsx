@@ -3,14 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { DataTable } from '@/components/ui/data-table';
+import { createQuestionColumns, Question } from './columns';
 import {
   Dialog,
   DialogContent,
@@ -49,8 +43,6 @@ import {
   XCircle, 
   Loader2,
   Eye,
-  ChevronLeft,
-  ChevronRight
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { CSVUploadComponent } from '@/components/admin/csv-upload';
@@ -64,30 +56,6 @@ interface Topic {
   id: string;
   name: string;
   sectionId: string;
-}
-
-interface Question {
-  id: string;
-  questionText: string;
-  option1: string;
-  option2: string;
-  option3: string;
-  option4: string;
-  correctOption: number;
-  explanation?: string;
-  sectionId: string;
-  topicId?: string;
-  difficultyLevel: 'easy' | 'medium' | 'hard';
-  status: 'pending' | 'approved' | 'rejected';
-  isVerified: boolean;
-  isActive: boolean;
-  verifiedBy?: string;
-  verifiedAt?: string;
-  creatorName?: string;
-  verifierName?: string;
-  hasEquation: boolean;
-  imageUrl?: string;
-  createdAt: string;
 }
 
 interface QuestionFormData {
@@ -104,6 +72,7 @@ interface QuestionFormData {
   hasEquation: boolean;
   imageUrl: string;
   isActive: boolean;
+  status?: 'pending' | 'approved' | 'rejected';
 }
 
 export default function QuestionsPage() {
@@ -113,7 +82,7 @@ export default function QuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [isCSVDialogOpen, setIsCSVDialogOpen] = useState(false);
+  const [isCSVSheetOpen, setIsCSVSheetOpen] = useState(false);
   const [isViewSheetOpen, setIsViewSheetOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [viewingQuestion, setViewingQuestion] = useState<Question | null>(null);
@@ -145,6 +114,7 @@ export default function QuestionsPage() {
     hasEquation: false,
     imageUrl: '',
     isActive: true,
+    status: 'pending',
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -310,6 +280,7 @@ export default function QuestionsPage() {
       hasEquation: question.hasEquation,
       imageUrl: question.imageUrl || '',
       isActive: question.isActive,
+      status: question.status,
     });
     setIsSheetOpen(true);
   };
@@ -427,7 +398,7 @@ export default function QuestionsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setIsCSVDialogOpen(true)} variant="outline">
+          <Button onClick={() => setIsCSVSheetOpen(true)} variant="outline">
             <Upload className="mr-2 h-4 w-4" />
             Import CSV
           </Button>
@@ -549,144 +520,27 @@ export default function QuestionsPage() {
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-6">
-          <Card>
-            <CardContent className="p-0">
-              {isLoading ? (
-                <div className="flex items-center justify-center p-12">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                </div>
-              ) : questions.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-12">
-                  <Eye className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-medium">No questions found</p>
-                  <p className="text-sm text-muted-foreground">
-                    Try adjusting your filters or add a new question
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="min-w-[300px] max-w-[400px]">Question</TableHead>
-                          <TableHead className="w-[180px]">Correct Answer</TableHead>
-                          <TableHead className="w-[100px]">Difficulty</TableHead>
-                          <TableHead className="w-[100px]">Status</TableHead>
-                          <TableHead className="w-[100px] text-center">Approve</TableHead>
-                          <TableHead className="w-[140px] text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {questions.map((question) => {
-                          const correctAnswer = question[`option${question.correctOption}` as keyof Question];
-                          // All questions can be toggled (pending, approved, rejected)
-                          return (
-                            <TableRow key={question.id}>
-                              <TableCell className="font-medium">
-                                <div className="max-w-[380px] truncate" title={question.questionText}>
-                                  {question.questionText}
-                                </div>
-                                {question.creatorName && (
-                                  <div className="text-xs text-muted-foreground mt-1">
-                                    By: {question.creatorName}
-                                  </div>
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                <div className="max-w-[160px] truncate" title={correctAnswer as string}>
-                                  {correctAnswer as string}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <Badge className={getDifficultyColor(question.difficultyLevel)}>
-                                  {question.difficultyLevel}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>{getStatusBadge(question.status)}</TableCell>
-                              <TableCell className="text-center">
-                                <div className="flex items-center justify-center gap-2">
-                                  <Switch
-                                    checked={question.status === 'approved'}
-                                    onCheckedChange={() => handleApprovalToggle(question.id, question.status)}
-                                    disabled={processingId === question.id}
-                                  />
-                                  {processingId === question.id && (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  )}
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex items-center justify-end gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => {
-                                      setViewingQuestion(question);
-                                      setIsViewSheetOpen(true);
-                                    }}
-                                    title="View details"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleOpenEditDialog(question)}
-                                    title="Edit question"
-                                  >
-                                    <Pencil className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleDelete(question.id)}
-                                    title="Delete question"
-                                  >
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
-
-                  {/* Pagination */}
-                  <div className="flex items-center justify-between px-6 py-4 border-t">
-                    <div className="text-sm text-muted-foreground">
-                      Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, total)} of {total} questions
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                        Previous
-                      </Button>
-                      <div className="text-sm">
-                        Page {currentPage} of {totalPages}
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        disabled={currentPage === totalPages}
-                      >
-                        Next
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
+          <DataTable
+            columns={createQuestionColumns(
+              (question) => {
+                setViewingQuestion(question);
+                setIsViewSheetOpen(true);
+              },
+              handleOpenEditDialog,
+              handleDelete
+            )}
+            data={questions}
+            loading={isLoading}
+            manualPagination
+            pageCount={totalPages}
+            pageSize={pageSize}
+            pageIndex={currentPage - 1}
+            totalItems={total}
+            onPaginationChange={(pagination) => {
+              setCurrentPage(pagination.pageIndex + 1);
+            }}
+            storageKey="questions-table-state"
+          />
         </TabsContent>
       </Tabs>
 
@@ -854,6 +708,44 @@ export default function QuestionsPage() {
                 </div>
               </div>
 
+              {editingQuestion && (
+                <div className="space-y-3 pt-2 border-t">
+                  <Label>Approval Status</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button
+                      type="button"
+                      variant={formData.status === 'pending' ? 'default' : 'outline'}
+                      className="w-full"
+                      onClick={() => setFormData({ ...formData, status: 'pending' })}
+                    >
+                      <span className="mr-2">⏳</span>
+                      Pending
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={formData.status === 'approved' ? 'default' : 'outline'}
+                      className={formData.status === 'approved' ? 'bg-green-600 hover:bg-green-700' : ''}
+                      onClick={() => setFormData({ ...formData, status: 'approved' })}
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Approve
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={formData.status === 'rejected' ? 'default' : 'outline'}
+                      className={formData.status === 'rejected' ? 'bg-red-600 hover:bg-red-700' : ''}
+                      onClick={() => setFormData({ ...formData, status: 'rejected' })}
+                    >
+                      <XCircle className="mr-2 h-4 w-4" />
+                      Reject
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Current status: {getStatusBadge(formData.status || 'pending')}
+                  </p>
+                </div>
+              )}
+
               <div className="flex items-center space-x-2">
                 <Switch
                   id="isActive"
@@ -949,18 +841,20 @@ export default function QuestionsPage() {
         </SheetContent>
       </Sheet>
 
-      {/* CSV Import Dialog */}
-      <Dialog open={isCSVDialogOpen} onOpenChange={setIsCSVDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Import Questions from CSV</DialogTitle>
-            <DialogDescription>
-              Upload a CSV file to bulk import questions
-            </DialogDescription>
-          </DialogHeader>
-          <CSVUploadComponent />
-        </DialogContent>
-      </Dialog>
+      {/* CSV Import Sheet */}
+      <Sheet open={isCSVSheetOpen} onOpenChange={setIsCSVSheetOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-3xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Import Questions from CSV</SheetTitle>
+            <SheetDescription>
+              Upload a CSV file to bulk import questions into the system
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-6">
+            <CSVUploadComponent />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

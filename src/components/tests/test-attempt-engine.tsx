@@ -337,12 +337,12 @@ export function TestAttemptEngine({
 
   if (!isTestStarted) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center max-w-md">
           <div className="mb-6">
-            <Clock className="w-16 h-16 text-white mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-2">Ready to Start?</h2>
-            <p className="text-gray-400 mb-6">
+            <Clock className="w-16 h-16 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Ready to Start?</h2>
+            <p className="text-muted-foreground mb-6">
               Click the button below to enter fullscreen mode and begin your test.
             </p>
           </div>
@@ -350,18 +350,18 @@ export function TestAttemptEngine({
             onClick={handleStartTest}
             disabled={isLoading}
             size="lg"
-            className="w-full"
+            className="w-full bg-amber-500 text-black hover:bg-amber-600"
           >
             {isLoading ? (
               <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
                 Starting Test...
               </>
             ) : (
               'Start Fullscreen Test'
             )}
           </Button>
-          <p className="text-sm text-gray-500 mt-4">
+          <p className="text-sm text-muted-foreground mt-4">
             The test will lock in fullscreen mode. You cannot exit until you submit.
           </p>
         </div>
@@ -372,11 +372,11 @@ export function TestAttemptEngine({
   // Show loading screen when submitting
   if (isSubmitting) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-white mx-auto mb-6"></div>
-          <h2 className="text-2xl font-bold text-white mb-2">Submitting Your Test...</h2>
-          <p className="text-gray-400">Please wait while we process your answers.</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-amber-500 mx-auto mb-6"></div>
+          <h2 className="text-2xl font-bold mb-2">Submitting Your Test...</h2>
+          <p className="text-muted-foreground">Please wait while we process your answers.</p>
         </div>
       </div>
     );
@@ -388,7 +388,7 @@ export function TestAttemptEngine({
   const markedCount = Array.from(answers.values()).filter(a => a.isMarkedForReview).length;
 
   return (
-    <div ref={containerRef} className="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
+    <div ref={containerRef} className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Submit Confirmation Dialog */}
       <SubmitConfirmDialog
         open={showSubmitDialog}
@@ -411,12 +411,12 @@ export function TestAttemptEngine({
       )}
 
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between flex-shrink-0">
+      <header className="bg-card border-b px-6 py-4 flex items-center justify-between flex-shrink-0">
         <div>
-          <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h1 className="text-lg font-semibold">
             {test.title}
           </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Attempt ID: {attemptId.slice(0, 8)}...
           </p>
         </div>
@@ -450,7 +450,7 @@ export function TestAttemptEngine({
 
       {/* Section Tabs (for multi-section tests) */}
       {hasMultipleSections && currentSectionId && (
-        <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <div className="border-b bg-card">
           <div className="px-6">
             <Tabs value={currentSectionId} onValueChange={setCurrentSectionId}>
               <TabsList className="h-12 bg-transparent border-0 p-0">
@@ -476,19 +476,19 @@ export function TestAttemptEngine({
           <div className="max-w-3xl">
             {/* Question Number */}
             <div className="mb-4">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              <span className="text-sm font-medium text-muted-foreground">
                 Question {currentQuestionIndex + 1} of {hasMultipleSections ? currentSectionQuestions.length : questions.length}
               </span>
               {!hasMultipleSections && currentQuestion.sectionName && (
-                <span className="ml-3 text-sm text-gray-500 dark:text-gray-500">
+                <span className="ml-3 text-sm text-muted-foreground">
                   Section: {currentQuestion.sectionName}
                 </span>
               )}
             </div>
 
             {/* Question Text */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
-              <p className="text-lg text-gray-900 dark:text-white leading-relaxed">
+            <div className="bg-card rounded-lg p-6 mb-6 border">
+              <p className="text-lg leading-relaxed">
                 {currentQuestion.questionText}
               </p>
             </div>
@@ -503,21 +503,21 @@ export function TestAttemptEngine({
                     onClick={() => handleAnswerSelect(optionNumber)}
                     className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
                       isSelected
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                        : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600'
+                        ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
+                        : 'border bg-card hover:border-muted-foreground/50'
                     }`}
                   >
                     <div className="flex items-start gap-3">
                       <div className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                         isSelected
-                          ? 'border-blue-500 bg-blue-500'
-                          : 'border-gray-300 dark:border-gray-600'
+                          ? 'border-amber-500 bg-amber-500'
+                          : 'border-muted-foreground'
                       }`}>
                         {isSelected && (
                           <div className="w-3 h-3 rounded-full bg-white"></div>
                         )}
                       </div>
-                      <span className="text-gray-900 dark:text-white">
+                      <span>
                         {currentQuestion[`option${optionNumber}` as keyof Question] as string}
                       </span>
                     </div>
@@ -566,8 +566,8 @@ export function TestAttemptEngine({
         </div>
 
         {/* Right Side - Navigation Palette */}
-        <div className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 overflow-y-auto p-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="w-80 bg-card border-l overflow-y-auto p-6">
+          <h3 className="font-semibold mb-4">
             Question Palette
           </h3>
 
@@ -577,7 +577,7 @@ export function TestAttemptEngine({
               const status = getQuestionStatus(question.id);
               const isCurrent = index === currentQuestionIndex;
 
-              let bgColor = 'bg-gray-200 dark:bg-gray-700'; // not-visited
+              let bgColor = 'bg-muted'; // not-visited
               if (status === 'answered') bgColor = 'bg-green-500 dark:bg-green-600';
               if (status === 'visited') bgColor = 'bg-red-500 dark:bg-red-600';
               if (status === 'marked') bgColor = 'bg-purple-500 dark:bg-purple-600';
@@ -590,8 +590,8 @@ export function TestAttemptEngine({
                   className={`
                     h-10 w-10 rounded-lg font-medium text-sm transition-all
                     ${bgColor}
-                    ${isCurrent ? 'ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-800' : ''}
-                    ${status === 'not-visited' ? 'text-gray-700 dark:text-gray-300' : 'text-white'}
+                    ${isCurrent ? 'ring-2 ring-amber-500 ring-offset-2 dark:ring-offset-background' : ''}
+                    ${status === 'not-visited' ? '' : 'text-white'}
                     hover:opacity-80
                   `}
                 >
@@ -603,29 +603,29 @@ export function TestAttemptEngine({
 
           {/* Legend */}
           <div className="space-y-2 text-sm">
-            <h4 className="font-medium text-gray-900 dark:text-white mb-3">Legend:</h4>
+            <h4 className="font-medium mb-3">Legend:</h4>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded bg-green-500"></div>
-              <span className="text-gray-700 dark:text-gray-300">Answered</span>
+              <span className="text-muted-foreground">Answered</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded bg-red-500"></div>
-              <span className="text-gray-700 dark:text-gray-300">Not Answered</span>
+              <span className="text-muted-foreground">Not Answered</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded bg-purple-500"></div>
-              <span className="text-gray-700 dark:text-gray-300">Marked for Review</span>
+              <span className="text-muted-foreground">Marked for Review</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded bg-gray-200 dark:bg-gray-700"></div>
-              <span className="text-gray-700 dark:text-gray-300">Not Visited</span>
+              <div className="w-6 h-6 rounded bg-muted"></div>
+              <span className="text-muted-foreground">Not Visited</span>
             </div>
           </div>
 
           {/* Summary */}
-          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <h4 className="font-medium text-gray-900 dark:text-white mb-3">Summary:</h4>
-            <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+          <div className="mt-6 pt-6 border-t">
+            <h4 className="font-medium mb-3">Summary:</h4>
+            <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex justify-between">
                 <span>Answered:</span>
                 <span className="font-medium">

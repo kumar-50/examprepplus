@@ -59,20 +59,20 @@ export function TestInstructions({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <Badge variant={test.testType === 'mock' ? 'default' : 'secondary'} className="uppercase">
+            <Badge className="uppercase bg-amber-500 text-black hover:bg-amber-600">
               {test.testType}
             </Badge>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-3xl font-bold">
               {test.title}
             </h1>
           </div>
           {test.description && (
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-muted-foreground">
               {test.description}
             </p>
           )}
@@ -82,12 +82,12 @@ export function TestInstructions({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card className="p-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                <Clock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Duration</p>
-                <p className="text-xl font-semibold text-gray-900 dark:text-white">
+                <p className="text-sm text-muted-foreground">Duration</p>
+                <p className="text-xl font-semibold">
                   {formatDuration(test.duration)}
                 </p>
               </div>
@@ -96,12 +96,12 @@ export function TestInstructions({
 
           <Card className="p-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                <FileText className="w-6 h-6 text-green-600 dark:text-green-400" />
+              <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                <FileText className="w-6 h-6 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Questions</p>
-                <p className="text-xl font-semibold text-gray-900 dark:text-white">
+                <p className="text-sm text-muted-foreground">Questions</p>
+                <p className="text-xl font-semibold">
                   {questionCount}
                 </p>
               </div>
@@ -110,12 +110,12 @@ export function TestInstructions({
 
           <Card className="p-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                <BookOpen className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                <BookOpen className="w-6 h-6 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Marks</p>
-                <p className="text-xl font-semibold text-gray-900 dark:text-white">
+                <p className="text-sm text-muted-foreground">Total Marks</p>
+                <p className="text-xl font-semibold">
                   {test.totalMarks}
                 </p>
               </div>
@@ -125,15 +125,15 @@ export function TestInstructions({
 
         {/* Marking Scheme */}
         <Card className="p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-xl font-semibold mb-4">
             Marking Scheme
           </h2>
           <div className="space-y-3">
             <div className="flex items-start gap-3">
               <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">Correct Answer</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="font-medium">Correct Answer</p>
+                <p className="text-sm text-muted-foreground">
                   +{(test.totalMarks / questionCount).toFixed(2)} marks
                 </p>
               </div>
@@ -141,17 +141,17 @@ export function TestInstructions({
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5" />
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">Wrong Answer</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="font-medium">Wrong Answer</p>
+                <p className="text-sm text-muted-foreground">
                   {getNegativeMarking()}
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-gray-400 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5" />
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">Unanswered</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="font-medium">Unanswered</p>
+                <p className="text-sm text-muted-foreground">
                   No marks deducted
                 </p>
               </div>
@@ -161,10 +161,10 @@ export function TestInstructions({
 
         {/* Instructions */}
         <Card className="p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-xl font-semibold mb-4">
             Important Instructions
           </h2>
-          <div className="space-y-4 text-gray-700 dark:text-gray-300">
+          <div className="space-y-4">
             {test.instructions ? (
               <div className="prose dark:prose-invert max-w-none">
                 {test.instructions.split('\n').map((line, index) => (
@@ -174,7 +174,7 @@ export function TestInstructions({
             ) : (
               <>
                 <div className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-medium">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 flex items-center justify-center text-sm font-medium">
                     1
                   </span>
                   <p>
@@ -182,7 +182,7 @@ export function TestInstructions({
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-medium">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 flex items-center justify-center text-sm font-medium">
                     2
                   </span>
                   <p>
@@ -190,7 +190,7 @@ export function TestInstructions({
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-medium">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 flex items-center justify-center text-sm font-medium">
                     3
                   </span>
                   <p>
@@ -198,7 +198,7 @@ export function TestInstructions({
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-medium">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 flex items-center justify-center text-sm font-medium">
                     4
                   </span>
                   <p>
@@ -206,7 +206,7 @@ export function TestInstructions({
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-medium">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 flex items-center justify-center text-sm font-medium">
                     5
                   </span>
                   <p>
@@ -214,7 +214,7 @@ export function TestInstructions({
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-medium">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 flex items-center justify-center text-sm font-medium">
                     6
                   </span>
                   <p>
@@ -228,7 +228,7 @@ export function TestInstructions({
           <Separator className="my-6" />
 
           {/* Terms Checkbox */}
-          <div className="flex items-start gap-3 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+          <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
             <Checkbox
               id="terms"
               checked={acceptedTerms}
@@ -237,7 +237,7 @@ export function TestInstructions({
             />
             <label
               htmlFor="terms"
-              className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1"
+              className="text-sm cursor-pointer flex-1"
             >
               I have read and understood all the instructions. I am ready to begin the test in fullscreen mode and understand that I cannot exit until I submit the test.
             </label>
@@ -250,7 +250,7 @@ export function TestInstructions({
             onClick={handleStartTest}
             disabled={!acceptedTerms}
             size="lg"
-            className="px-8"
+            className="px-8 bg-amber-500 text-black hover:bg-amber-600"
           >
             I'm Ready, Start Test
           </Button>

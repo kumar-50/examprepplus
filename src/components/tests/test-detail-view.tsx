@@ -53,7 +53,7 @@ export function TestDetailView({ test, userId, attemptHistory }: TestDetailViewP
       {/* Main Content */}
       <div className="lg:col-span-2 space-y-6">
         {/* Banner */}
-        <div className="bg-gray-200 dark:bg-gray-700 rounded-lg h-64 flex items-center justify-center">
+        <div className="bg-muted rounded-lg h-64 flex items-center justify-center">
           {test.bannerImage ? (
             <img src={test.bannerImage} alt={test.title} className="w-full h-full object-cover rounded-lg" />
           ) : (
@@ -63,16 +63,16 @@ export function TestDetailView({ test, userId, attemptHistory }: TestDetailViewP
 
         {/* Title and Metadata */}
         <div className="space-y-4">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-3xl font-bold">
             {test.title}
           </h1>
 
           <div className="flex flex-wrap items-center gap-4">
-            <Badge variant="secondary">
+            <Badge className="bg-amber-500 hover:bg-amber-500 text-white">
               <Clock className="w-4 h-4 mr-1" />
               {test.duration} min
             </Badge>
-            <Badge variant="secondary">
+            <Badge className="bg-amber-500 hover:bg-amber-500 text-white">
               <FileText className="w-4 h-4 mr-1" />
               {test.totalQuestions} Questions
             </Badge>
@@ -83,13 +83,13 @@ export function TestDetailView({ test, userId, attemptHistory }: TestDetailViewP
               <div className="flex items-center gap-1">
                 <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                 <span className="font-medium">{test.averageRating.toFixed(1)}</span>
-                <span className="text-gray-600 dark:text-gray-400">({test.totalRatings})</span>
+                <span className="text-muted-foreground">({test.totalRatings})</span>
               </div>
             ) : null}
           </div>
 
           {test.description && (
-            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+            <p className="text-muted-foreground leading-relaxed">
               {test.description}
             </p>
           )}
@@ -108,14 +108,14 @@ export function TestDetailView({ test, userId, attemptHistory }: TestDetailViewP
                 {attemptHistory.map((attempt, index) => (
                   <div
                     key={attempt.id}
-                    className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                    className="bg-card border rounded-lg p-4"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium text-gray-900 dark:text-white">
+                        <h4 className="font-medium">
                           Attempt #{attemptHistory.length - index}
                         </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-muted-foreground">
                           {new Date(attempt.startedAt).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'long',
@@ -128,7 +128,7 @@ export function TestDetailView({ test, userId, attemptHistory }: TestDetailViewP
                       <div className="text-right">
                         {attempt.status === 'submitted' || attempt.status === 'auto_submitted' ? (
                           <>
-                            <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                            <div className="text-2xl font-bold">
                               {attempt.score?.toFixed(2) || 0}/{test.totalMarks}
                             </div>
                             <div className="flex gap-2 mt-2">
@@ -177,16 +177,16 @@ export function TestDetailView({ test, userId, attemptHistory }: TestDetailViewP
 
       {/* Sidebar */}
       <div className="lg:col-span-1">
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 sticky top-8 space-y-6">
+        <div className="bg-card rounded-lg border p-6 sticky top-8 space-y-6">
           <div>
             <h3 className="text-xl font-semibold mb-2">Take the Test</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               Ready to test your knowledge?
             </p>
 
             {test.isFree ? (
               <Link href={`/dashboard/tests/${test.id}/attempt`}>
-                <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900" size="lg">
+                <Button className="w-full bg-amber-500 hover:bg-amber-600 text-black" size="lg">
                   <Play className="w-5 h-5 mr-2" />
                   Start Test
                 </Button>
@@ -200,12 +200,12 @@ export function TestDetailView({ test, userId, attemptHistory }: TestDetailViewP
           </div>
 
           {test.averageRating !== null && (
-            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="pt-4 border-t">
               <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                <div className="text-3xl font-bold mb-1">
                   {test.averageRating.toFixed(1)} ⭐
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   Based on {test.totalRatings} ratings
                 </p>
               </div>
@@ -213,7 +213,7 @@ export function TestDetailView({ test, userId, attemptHistory }: TestDetailViewP
           )}
 
           {test.totalAttempts !== null && test.totalAttempts > 0 && (
-            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-center text-sm text-muted-foreground">
               Attempted by {test.totalAttempts.toLocaleString()} users
             </div>
           )}

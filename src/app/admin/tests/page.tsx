@@ -5,14 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { DataTable } from '@/components/ui/data-table';
+import { createTestColumns, Test } from './columns';
 import {
   Select,
   SelectContent,
@@ -20,19 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Spinner } from '@/components/ui/spinner';
-import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  Search,
-  Clock,
-  CheckCircle,
-} from 'lucide-react';
+import { Plus, CheckCircle } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,21 +34,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
-interface Test {
-  id: string;
-  title: string;
-  description?: string;
-  testType: 'mock' | 'live' | 'sectional' | 'practice';
-  totalQuestions: number;
-  totalMarks: number;
-  duration: number;
-  isPublished: boolean;
-  isFree: boolean;
-  questionCount: number;
-  createdAt: string;
-  scheduledAt?: string;
-}
+import { Spinner } from '@/components/ui/spinner';
 
 export default function TestsListPage() {
   const router = useRouter();
@@ -84,6 +53,8 @@ export default function TestsListPage() {
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const pageSize = 20;
 
   useEffect(() => {
     fetchTests();
@@ -110,6 +81,7 @@ export default function TestsListPage() {
       const data = await response.json();
       setTests(data.tests);
       setTotalPages(data.pagination.totalPages);
+      setTotalItems(data.pagination.total || 0);
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -206,18 +178,6 @@ export default function TestsListPage() {
     }
   };
 
-  const getTestTypeBadge = (type: string) => {
-    const variants = {
-      mock: { variant: 'default' as const, label: 'Mock Test' },
-      live: { variant: 'destructive' as const, label: 'Live Test' },
-      sectional: { variant: 'secondary' as const, label: 'Sectional' },
-      practice: { variant: 'outline' as const, label: 'Practice' },
-    };
-
-    const { variant, label } = variants[type as keyof typeof variants] || variants.mock;
-    return <Badge variant={variant}>{label}</Badge>;
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -233,192 +193,58 @@ export default function TestsListPage() {
         </Button>
       </div>
 
-      <div className="flex gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search tests..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+      <DataTable
+        columns={createTestColumns(
+          handleViewQuestions,
+          (test) => router.push(`/admin/tests/builder?id=${test.id}`),
+          (id) => {
+            setTestToDelete(id);
+            setDeleteDialogOpen(true);
+          },
+          handleTogglePublish
+        )}
+        data={tests}
+        loading={loading}
+        manualPagination
+        pageCount={totalPages}
+        pageSize={pageSize}
+        pageIndex={page - 1}
+        totalItems={totalItems}
+        onPaginationChange={(pagination) => {
+          setPage(pagination.pageIndex + 1);
+        }}
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search tests..."
+        storageKey="tests-table-state"
+        toolbar={
+          <>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Test Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="mock">Mock Test</SelectItem>
+                <SelectItem value="live">Live Test</SelectItem>
+                <SelectItem value="sectional">Sectional</SelectItem>
+                <SelectItem value="practice">Practice</SelectItem>
+              </SelectContent>
+            </Select>
 
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Test Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="mock">Mock Test</SelectItem>
-            <SelectItem value="live">Live Test</SelectItem>
-            <SelectItem value="sectional">Sectional</SelectItem>
-            <SelectItem value="practice">Practice</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={publishedFilter} onValueChange={setPublishedFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="true">Published</SelectItem>
-            <SelectItem value="false">Draft</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <Spinner className="h-8 w-8" />
-        </div>
-      ) : tests.length === 0 ? (
-        <Card className="p-12 text-center">
-          <p className="text-muted-foreground">No tests found</p>
-          <Button
-            variant="outline"
-            className="mt-4"
-            onClick={() => router.push('/admin/tests/builder')}
-          >
-            Create Your First Test
-          </Button>
-        </Card>
-      ) : (
-        <>
-          <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Questions</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead>Marks</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tests.map((test) => (
-                  <TableRow key={test.id}>
-                    <TableCell className="font-medium">
-                      <div>
-                        <p>{test.title}</p>
-                        {test.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-1">
-                            {test.description}
-                          </p>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{getTestTypeBadge(test.testType)}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span>{test.questionCount}</span>
-                        {test.questionCount !== test.totalQuestions && (
-                          <span className="text-xs text-amber-600">
-                            (Target: {test.totalQuestions})
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        {test.duration} min
-                      </div>
-                    </TableCell>
-                    <TableCell>{test.totalMarks}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={test.isPublished}
-                            onCheckedChange={() =>
-                              handleTogglePublish(test.id, test.isPublished)
-                            }
-                          />
-                          <Badge
-                            variant={test.isPublished ? 'default' : 'secondary'}
-                            className="text-xs"
-                          >
-                            {test.isPublished ? 'Published' : 'Draft'}
-                          </Badge>
-                        </div>
-                        {test.isFree && (
-                          <Badge variant="outline" className="text-xs">
-                            Free
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(test.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleViewQuestions(test)}
-                          title="View Questions"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() =>
-                            router.push(`/admin/tests/builder?id=${test.id}`)
-                          }
-                          title="Edit Test"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            setTestToDelete(test.id);
-                            setDeleteDialogOpen(true);
-                          }}
-                          title="Delete Test"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
-
-          {totalPages > 1 && (
-            <div className="flex justify-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-              >
-                Previous
-              </Button>
-              <span className="flex items-center px-4">
-                Page {page} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-              >
-                Next
-              </Button>
-            </div>
-          )}
-        </>
-      )}
+            <Select value={publishedFilter} onValueChange={setPublishedFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="true">Published</SelectItem>
+                <SelectItem value="false">Draft</SelectItem>
+              </SelectContent>
+            </Select>
+          </>
+        }
+      />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

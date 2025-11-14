@@ -34,7 +34,7 @@ export default async function TestDetailPage({ params }: TestDetailPageProps) {
       <div className="mb-6">
         <Link
           href="/dashboard/tests"
-          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Tests</span>

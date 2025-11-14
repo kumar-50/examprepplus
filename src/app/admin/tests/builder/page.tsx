@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Spinner } from '@/components/ui/spinner';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import {
   Select,
@@ -52,6 +53,7 @@ import {
   Eye,
   CheckCircle,
   Calendar,
+  ArrowLeft,
 } from 'lucide-react';
 
 interface Question {
@@ -107,7 +109,7 @@ export default function TestBuilderPage() {
   const testId = searchParams.get('id');
   const isEditMode = !!testId;
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(isEditMode); // Start loading if editing
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<TestFormData>({
     title: '',
@@ -403,6 +405,25 @@ export default function TestBuilderPage() {
       }
     }
 
+    return await saveTest();
+  };
+
+  const handlePreview = async () => {
+    if (isEditMode) {
+      // For edit mode, just navigate to preview to view existing questions
+      router.push(`/admin/tests/builder/preview?id=${testId}`);
+    } else {
+      // For create mode, save as draft first then navigate
+      const savedId = await handleSave(false);
+      if (savedId) {
+        router.push(`/admin/tests/builder/preview?id=${savedId}`);
+      }
+    }
+  };
+
+  const saveTest = async () => {
+    const isPatternBased = formData.testType === 'mock' || formData.testType === 'live';
+
     setSaving(true);
     try {
       const totalQuestions = isPatternBased 
@@ -416,7 +437,7 @@ export default function TestBuilderPage() {
         ...formData,
         totalQuestions,
         totalMarks,
-        isPublished: publish,
+        isPublished: false, // Always save as draft
         testPattern: isPatternBased ? Object.fromEntries(
           sectionPatterns.map(sp => [sp.sectionId, sp.questionCount])
         ) : null,
@@ -504,16 +525,17 @@ export default function TestBuilderPage() {
 
       toast({
         title: 'Success',
-        description: `Test ${publish ? 'published' : 'saved'} successfully`,
+        description: 'Test saved as draft successfully',
       });
 
-      router.push('/admin/tests');
+      return savedTestId;
     } catch (error: any) {
       toast({
         title: 'Error',
         description: error.message || 'Failed to save test',
         variant: 'destructive',
       });
+      return null;
     } finally {
       setSaving(false);
     }
@@ -521,8 +543,132 @@ export default function TestBuilderPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
-        <Spinner className="h-8 w-8" />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-48" />
+            <Skeleton className="h-5 w-80" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Test Configuration Skeleton */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="p-6">
+              <Skeleton className="h-7 w-32 mb-4" />
+              
+              <div className="space-y-4">
+                <div>
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+
+                <div>
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-20 w-full" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Skeleton className="h-4 w-24 mb-2" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <div>
+                    <Skeleton className="h-4 w-32 mb-2" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                </div>
+
+                <div>
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-24 w-full" />
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-48" />
+                    </div>
+                    <Skeleton className="h-6 w-11 rounded-full" />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-52" />
+                    </div>
+                    <Skeleton className="h-6 w-11 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <Skeleton className="h-7 w-56" />
+                <Skeleton className="h-10 w-32" />
+              </div>
+
+              <div className="space-y-4">
+                <div className="text-center py-12">
+                  <Skeleton className="h-5 w-48 mx-auto mb-2" />
+                  <Skeleton className="h-4 w-64 mx-auto" />
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Right Column - Preview Skeleton */}
+          <div className="lg:col-span-1">
+            <Card className="p-6 sticky top-6">
+              <Skeleton className="h-6 w-32 mb-6" />
+
+              <div className="space-y-4">
+                <div>
+                  <Skeleton className="h-4 w-32 mb-1" />
+                  <Skeleton className="h-8 w-16" />
+                </div>
+
+                <div>
+                  <Skeleton className="h-4 w-28 mb-1" />
+                  <Skeleton className="h-8 w-16" />
+                </div>
+
+                <div>
+                  <Skeleton className="h-4 w-20 mb-1" />
+                  <Skeleton className="h-6 w-28" />
+                </div>
+
+                <div className="border-t pt-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        {/* Bottom Action Bar Skeleton */}
+        <Card className="p-6 sticky bottom-0 bg-background border-t">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-5 w-64" />
+            <div className="flex gap-3">
+              <Skeleton className="h-11 w-32" />
+              <Skeleton className="h-11 w-40" />
+            </div>
+          </div>
+        </Card>
       </div>
     );
   }
@@ -532,30 +678,22 @@ export default function TestBuilderPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">
-            {isEditMode ? 'Edit Test' : 'Create New Test'}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Configure test details and add approved questions
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => router.push('/admin/tests')}>
-            Cancel
-          </Button>
+        <div className="flex items-center gap-4">
           <Button
-            variant="outline"
-            onClick={() => handleSave(false)}
-            disabled={saving}
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push('/admin/tests')}
           >
-            {saving ? <Spinner className="mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
-            Save Draft
+            <ArrowLeft className="h-5 w-5" />
           </Button>
-          <Button onClick={() => handleSave(true)} disabled={saving}>
-            {saving ? <Spinner className="mr-2 h-4 w-4" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-            Publish Test
-          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">
+              {isEditMode ? 'Edit Test' : 'Create New Test'}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Configure test details and add approved questions
+            </p>
+          </div>
         </div>
       </div>
 
@@ -688,21 +826,6 @@ export default function TestBuilderPage() {
                     />
                   </div>
                 )}
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Published</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Make test visible to students
-                    </p>
-                  </div>
-                  <Switch
-                    checked={formData.isPublished}
-                    onCheckedChange={(checked) =>
-                      setFormData({ ...formData, isPublished: checked })
-                    }
-                  />
-                </div>
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
@@ -940,6 +1063,49 @@ export default function TestBuilderPage() {
           </Card>
         </div>
       </div>
+
+      {/* Bottom Action Buttons */}
+      <Card className="p-6 sticky bottom-0 bg-background border-t">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            {totalQuestions > 0 ? (
+              <span>
+                <strong>{totalQuestions}</strong> questions selected | <strong>{totalMarks}</strong> total marks
+              </span>
+            ) : (
+              <span>No questions selected yet</span>
+            )}
+          </div>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => handleSave(false)}
+              disabled={saving || !formData.title}
+              size="lg"
+            >
+              {saving ? <Spinner className="mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+              Save Draft
+            </Button>
+            <Button
+              onClick={handlePreview}
+              disabled={saving || !formData.title || (!isEditMode && (formData.testType === 'mock' || formData.testType === 'live' ? sectionPatterns.length === 0 : selectedQuestions.length === 0))}
+              size="lg"
+            >
+              {isEditMode ? (
+                <>
+                  <Eye className="mr-2 h-4 w-4" />
+                  View Questions
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Generate Questions
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }

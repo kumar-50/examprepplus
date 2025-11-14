@@ -27,6 +27,7 @@ export interface ValidationError {
   row: number;
   field: string;
   reason: string;
+  data?: CSVRow; // Include the raw data so it can be edited
 }
 
 export interface ParseResult {
@@ -167,7 +168,8 @@ export async function parseCSV(file: File): Promise<ParseResult> {
         const rowErrors = validateRow(row, rowNumber);
         
         if (rowErrors.length > 0) {
-          errors.push(...rowErrors);
+          // Attach raw data to errors for inline editing
+          errors.push(...rowErrors.map(err => ({ ...err, data: row })));
         } else {
           // Convert to parsed question
           questions.push(rowToQuestion(row, rowNumber));

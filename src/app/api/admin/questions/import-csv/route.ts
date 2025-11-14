@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/server';
 import { db } from '@/db';
 import { questions, sections } from '@/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 const importQuestionSchema = z.object({
@@ -115,11 +115,43 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    // Bulk insert in a transaction
+    // Check for duplicates before inserting
+    const duplicateChecks = await Promise.all(
+      questionsToInsert.map(async (q) => {
+        const existing = await db
+          .select({ id: questions.id })
+          .from(questions)
+          .where(
+            and(
+              eq(questions.sectionId, q.sectionId),
+              sql`LOWER(TRIM(${questions.questionText})) = LOWER(TRIM(${q.questionText}))`
+            )
+          )
+          .limit(1);
+        
+        return {
+          question: q,
+          isDuplicate: existing.length > 0,
+        };
+      })
+    );
+
+    // Filter out duplicates
+    const uniqueQuestions = duplicateChecks
+      .filter(check => !check.isDuplicate)
+      .map(check => check.question);
+    
+    const skippedCount = questionsToInsert.length - uniqueQuestions.length;
+
+    // Bulk insert in a transaction (only unique questions)
     const result = await db.transaction(async (tx) => {
+      if (uniqueQuestions.length === 0) {
+        return [];
+      }
+
       const inserted = await tx
         .insert(questions)
-        .values(questionsToInsert)
+        .values(uniqueQuestions)
         .returning({ id: questions.id });
 
       return inserted;
@@ -128,8 +160,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       imported: result.length,
+      skipped: skippedCount,
       sectionsCreated: missingSections.length,
       message: `Successfully imported ${result.length} questions${
+        skippedCount > 0 ? `, skipped ${skippedCount} duplicate(s)` : ''
+      }${
         missingSections.length > 0
           ? ` and created ${missingSections.length} new section(s)`
           : ''

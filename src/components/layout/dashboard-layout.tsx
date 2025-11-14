@@ -26,7 +26,7 @@ export function DashboardLayout({ children, navItems, title, user }: DashboardLa
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -38,7 +38,7 @@ export function DashboardLayout({ children, navItems, title, user }: DashboardLa
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex flex-col border-r bg-sidebar transition-all duration-300 lg:relative lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 flex h-screen flex-col border-r bg-sidebar transition-all duration-300 lg:relative lg:translate-x-0',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
           sidebarCollapsed ? 'lg:w-16' : 'lg:w-64'
         )}
@@ -112,7 +112,7 @@ export function DashboardLayout({ children, navItems, title, user }: DashboardLa
       </aside>
 
       {/* Main content area */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col h-screen overflow-hidden">
         {/* Top header */}
         <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b bg-background px-6">
           <Button
@@ -145,7 +145,7 @@ export function DashboardLayout({ children, navItems, title, user }: DashboardLa
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-y-auto p-6">
           {children}
         </main>
       </div>

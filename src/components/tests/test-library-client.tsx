@@ -51,10 +51,10 @@ export function TestLibraryClient({ tests }: TestLibraryClientProps) {
   return (
     <div className="space-y-6">
       {/* Search and Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 space-y-4">
+      <div className="bg-card rounded-lg p-6 space-y-4 border">
         {/* Search Bar */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search for tests by title or topic..."
@@ -122,7 +122,7 @@ export function TestLibraryClient({ tests }: TestLibraryClientProps) {
       </div>
 
       {/* Results Count */}
-      <div className="text-sm text-gray-600 dark:text-gray-400">
+      <div className="text-sm text-muted-foreground">
         Showing {filteredTests.length} test{filteredTests.length !== 1 ? 's' : ''}
       </div>
 
@@ -143,7 +143,7 @@ export function TestLibraryClient({ tests }: TestLibraryClientProps) {
 
       {filteredTests.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500 dark:text-gray-400">No tests found matching your criteria</p>
+          <p className="text-muted-foreground">No tests found matching your criteria</p>
         </div>
       )}
     </div>
@@ -152,15 +152,15 @@ export function TestLibraryClient({ tests }: TestLibraryClientProps) {
 
 function TestCard({ test }: { test: Test }) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow overflow-hidden">
+    <div className="bg-card rounded-lg border hover:shadow-lg transition-shadow overflow-hidden">
       {/* Header Badges */}
       <div className="p-4 flex items-start justify-between gap-2 flex-wrap">
         <div className="flex flex-wrap gap-2">
-          <Badge variant="secondary" className="text-xs">
+          <Badge className="text-xs bg-amber-500 hover:bg-amber-600 text-white border-0">
             <Clock className="w-3 h-3 mr-1" />
             {test.duration} min
           </Badge>
-          <Badge variant="secondary" className="text-xs">
+          <Badge className="text-xs bg-amber-500 hover:bg-amber-600 text-white border-0">
             <FileText className="w-3 h-3 mr-1" />
             {test.totalQuestions} Qs
           </Badge>
@@ -169,45 +169,31 @@ function TestCard({ test }: { test: Test }) {
           </Badge>
         </div>
         {!test.isFree && (
-          <Lock className="w-4 h-4 text-yellow-500" />
+          <Lock className="w-4 h-4 text-amber-500" />
         )}
       </div>
 
       {/* Content */}
       <div className="px-4 pb-4 space-y-3">
-        <h3 className="font-semibold text-lg text-gray-900 dark:text-white line-clamp-2">
+        <h3 className="font-semibold text-lg line-clamp-2">
           {test.title}
         </h3>
 
-        {test.description && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-            {test.description}
+        {test.userAttemptCount > 0 && (
+          <p className="text-sm text-muted-foreground">
+            Attempted {test.userAttemptCount}x
           </p>
         )}
 
-        {/* Rating and Attempts */}
-        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-          {test.averageRating && test.totalRatings ? (
-            <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium">{test.averageRating.toFixed(1)}</span>
-              <span>({test.totalRatings})</span>
-            </div>
-          ) : null}
-          {test.userAttemptCount > 0 && (
-            <span>Attempted {test.userAttemptCount}x</span>
-          )}
-        </div>
-
         {/* Action Button */}
         <Button 
-          className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900"
+          className="w-full bg-amber-500 hover:bg-amber-600 text-black font-medium border-0"
           onClick={(e) => {
             e.preventDefault();
             window.location.href = `/dashboard/tests/${test.id}`;
           }}
         >
-          {test.isFree ? 'Start Test' : 'View Details'}
+          {test.userAttemptCount > 0 ? 'View Details' : 'Start Test'}
         </Button>
       </div>
     </div>
@@ -216,46 +202,39 @@ function TestCard({ test }: { test: Test }) {
 
 function TestListItem({ test }: { test: Test }) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
+    <div className="bg-card rounded-lg border p-6 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 space-y-2">
           <div className="flex items-start gap-3">
-            <h3 className="font-semibold text-lg text-gray-900 dark:text-white flex-1">
+            <h3 className="font-semibold text-lg flex-1">
               {test.title}
             </h3>
             {!test.isFree && (
-              <Lock className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+              <Lock className="w-5 h-5 text-amber-500 flex-shrink-0" />
             )}
           </div>
 
           {test.description && (
-            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-1">
+            <p className="text-sm text-muted-foreground line-clamp-1">
               {test.description}
             </p>
           )}
 
           <div className="flex flex-wrap items-center gap-3">
-            <Badge variant="secondary" className="text-xs">
+            <Badge className="text-xs bg-amber-500 hover:bg-amber-600 text-white border-0">
               <Clock className="w-3 h-3 mr-1" />
               {test.duration} min
             </Badge>
-            <Badge variant="secondary" className="text-xs">
+            <Badge className="text-xs bg-amber-500 hover:bg-amber-600 text-white border-0">
               <FileText className="w-3 h-3 mr-1" />
-              {test.totalQuestions} Questions
+              {test.totalQuestions} Qs
             </Badge>
             <Badge variant="outline" className="text-xs capitalize">
               {test.testType}
             </Badge>
 
-            {test.averageRating && test.totalRatings ? (
-              <div className="flex items-center gap-1 text-sm">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                <span className="font-medium">{test.averageRating.toFixed(1)}</span>
-              </div>
-            ) : null}
-
             {test.userAttemptCount > 0 && (
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="text-sm text-muted-foreground">
                 Attempted {test.userAttemptCount}x
               </span>
             )}
@@ -263,13 +242,13 @@ function TestListItem({ test }: { test: Test }) {
         </div>
 
         <Button 
-          className="bg-yellow-500 hover:bg-yellow-600 text-gray-900"
+          className="bg-amber-500 hover:bg-amber-600 text-black font-medium border-0"
           onClick={(e) => {
             e.preventDefault();
             window.location.href = `/dashboard/tests/${test.id}`;
           }}
         >
-          {test.isFree ? 'Start Test' : 'Unlock'}
+          {test.userAttemptCount > 0 ? 'View Details' : 'Start Test'}
         </Button>
       </div>
     </div>

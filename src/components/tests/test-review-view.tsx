@@ -48,14 +48,14 @@ export function TestReviewView({ review }: TestReviewViewProps) {
     : '0.00';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-800 to-gray-900 flex items-center justify-center p-8">
+    <div className="min-h-screen bg-background flex items-center justify-center p-8">
       {/* Score Summary */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-8 text-center max-w-2xl w-full">
+      <div className="bg-card border rounded-lg p-8 text-center max-w-2xl w-full">
         <h1 className="text-3xl font-bold mb-4">Test Complete!</h1>
         <div className="text-6xl font-bold text-green-600 dark:text-green-400 mb-2">
           {attempt.score?.toFixed(2) || 0}/{test.totalMarks}
         </div>
-        <p className="text-xl text-gray-600 dark:text-gray-400 mb-6">
+        <p className="text-xl text-muted-foreground mb-6">
           {percentage}% Accuracy
         </p>
 
@@ -65,7 +65,7 @@ export function TestReviewView({ review }: TestReviewViewProps) {
               <CheckCircle2 className="w-5 h-5 text-green-600" />
               <span className="text-2xl font-bold text-green-600">{attempt.correctAnswers || 0}</span>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Correct</p>
+            <p className="text-sm text-muted-foreground">Correct</p>
           </div>
 
           <div className="text-center">
@@ -73,15 +73,15 @@ export function TestReviewView({ review }: TestReviewViewProps) {
               <XCircle className="w-5 h-5 text-red-600" />
               <span className="text-2xl font-bold text-red-600">{attempt.incorrectAnswers || 0}</span>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Incorrect</p>
+            <p className="text-sm text-muted-foreground">Incorrect</p>
           </div>
 
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <MinusCircle className="w-5 h-5 text-gray-600" />
-              <span className="text-2xl font-bold text-gray-600">{attempt.unanswered || 0}</span>
+              <MinusCircle className="w-5 h-5 text-muted-foreground" />
+              <span className="text-2xl font-bold text-muted-foreground">{attempt.unanswered || 0}</span>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Unanswered</p>
+            <p className="text-sm text-muted-foreground">Unanswered</p>
           </div>
         </div>
 
@@ -90,7 +90,7 @@ export function TestReviewView({ review }: TestReviewViewProps) {
             <Button variant="outline">View Test Details</Button>
           </Link>
           <Link href="/dashboard/tests">
-            <Button>Browse More Tests</Button>
+            <Button className="bg-amber-500 text-black hover:bg-amber-600">Browse More Tests</Button>
           </Link>
         </div>
       </div>
