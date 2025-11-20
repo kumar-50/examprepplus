@@ -1,0 +1,45 @@
+sequenceDiagram
+    participant Admin
+    participant Frontend
+    participant API
+    participant Database
+    participant Validator
+    
+    Note over Admin,Validator: Question Creation & Verification Flow
+    
+    Admin->>Frontend: Fill question form
+    Frontend->>Validator: Validate input
+    Validator-->>Frontend: Validation passed
+    
+    Frontend->>API: POST /questions/create
+    API->>Database: Check section & topic exist
+    Database-->>API: Valid IDs
+    
+    API->>Database: Insert question (status=pending)
+    Database-->>API: Question ID
+    API-->>Frontend: Question created
+    Frontend-->>Admin: Success message
+    
+    Note over Admin,Validator: Another Admin Verifies
+    
+    Admin->>Frontend: Open verification dashboard
+    Frontend->>API: GET /questions?status=pending
+    API->>Database: Fetch pending questions
+    Database-->>API: List of questions
+    API-->>Frontend: Questions list
+    
+    Admin->>Frontend: Review question
+    
+    alt Approve
+        Admin->>Frontend: Click "Approve"
+        Frontend->>API: PATCH /questions/{id}/approve
+        API->>Database: Update status=approved, verifiedBy, verifiedAt
+    else Reject
+        Admin->>Frontend: Click "Reject" + reason
+        Frontend->>API: PATCH /questions/{id}/reject
+        API->>Database: Update status=rejected
+    end
+    
+    Database-->>API: Updated
+    API-->>Frontend: Status changed
+    Frontend-->>Admin: Confirmation

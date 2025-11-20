@@ -90,7 +90,7 @@ export function TestReviewView({ review }: TestReviewViewProps) {
             <Button variant="outline">View Test Details</Button>
           </Link>
           <Link href="/dashboard/tests">
-            <Button className="bg-amber-500 text-black hover:bg-amber-600">Browse More Tests</Button>
+            <Button>Browse More Tests</Button>
           </Link>
         </div>
       </div>

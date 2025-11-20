@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import { Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import {
@@ -41,6 +42,8 @@ export function SignUpForm({ onSuccess, redirectTo = '/' }: SignUpFormProps) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -109,7 +112,7 @@ export function SignUpForm({ onSuccess, redirectTo = '/' }: SignUpFormProps) {
           name="fullName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[var(--heading)]">Full Name</FormLabel>
+              <FormLabel>Full Name</FormLabel>
               <FormControl>
                 <Input 
                   placeholder="John Doe" 
@@ -127,7 +130,7 @@ export function SignUpForm({ onSuccess, redirectTo = '/' }: SignUpFormProps) {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[var(--heading)]">Email Address</FormLabel>
+              <FormLabel>Email Address</FormLabel>
               <FormControl>
                 <Input 
                   type="email" 
@@ -146,14 +149,29 @@ export function SignUpForm({ onSuccess, redirectTo = '/' }: SignUpFormProps) {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[var(--heading)]">Password</FormLabel>
+              <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input 
-                  type="password" 
-                  placeholder="Create a strong password" 
-                  className="h-11"
-                  {...field} 
-                />
+                <div className="relative">
+                  <Input 
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a strong password" 
+                    className="h-11 pr-10"
+                    {...field} 
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -165,14 +183,29 @@ export function SignUpForm({ onSuccess, redirectTo = '/' }: SignUpFormProps) {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[var(--heading)]">Confirm Password</FormLabel>
+              <FormLabel>Confirm Password</FormLabel>
               <FormControl>
-                <Input 
-                  type="password" 
-                  placeholder="Confirm your password" 
-                  className="h-11"
-                  {...field} 
-                />
+                <div className="relative">
+                  <Input 
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your password" 
+                    className="h-11 pr-10"
+                    {...field} 
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -181,7 +214,7 @@ export function SignUpForm({ onSuccess, redirectTo = '/' }: SignUpFormProps) {
 
         <Button 
           type="submit" 
-          className="w-full h-11 bg-[var(--brand-primary)] hover:bg-[var(--brand-dark)] text-white font-medium" 
+          className="w-full h-11 font-medium" 
           disabled={loading}
         >
           {loading ? (

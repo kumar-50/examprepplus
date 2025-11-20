@@ -1,0 +1,55 @@
+stateDiagram-v2
+    [*] --> NotStarted: Test available
+    
+    NotStarted --> InProgress: User clicks "Start Test"
+    
+    state InProgress {
+        [*] --> AnsweringQuestions
+        AnsweringQuestions --> AnsweringQuestions: Select/Change answer
+        AnsweringQuestions --> MarkedForReview: Mark for review
+        MarkedForReview --> AnsweringQuestions: Continue answering
+    }
+    
+    InProgress --> Submitted: User clicks submit
+    InProgress --> AutoSubmitted: Timer expires
+    
+    Submitted --> ResultsCalculated: System calculates score
+    AutoSubmitted --> ResultsCalculated: System calculates score
+    
+    ResultsCalculated --> Analyzed: System analyzes performance
+    
+    state Analyzed {
+        [*] --> ScoreGenerated
+        ScoreGenerated --> SectionBreakdownCreated
+        SectionBreakdownCreated --> TopicBreakdownCreated
+        TopicBreakdownCreated --> WeakAreasIdentified
+        WeakAreasIdentified --> [*]
+    }
+    
+    Analyzed --> PracticeRecommended: Weak topics found
+    Analyzed --> [*]: No weak topics
+    
+    PracticeRecommended --> NotStarted: Practice test scheduled
+    
+    note right of InProgress
+        attempt.status: in_progress
+        Timer running
+        Answers being recorded
+    end note
+    
+    note right of Submitted
+        attempt.status: submitted
+        submittedAt: timestamp
+    end note
+    
+    note right of AutoSubmitted
+        attempt.status: auto_submitted
+        Forced submission by system
+    end note
+    
+    note right of Analyzed
+        score, correctAnswers calculated
+        sectionBreakdown JSON created
+        topicBreakdown JSON created
+        weak_topics updated
+    end note

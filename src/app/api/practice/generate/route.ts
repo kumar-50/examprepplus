@@ -1,0 +1,130 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth/server';
+import { db } from '@/db';
+import { tests, userTestAttempts, testQuestions, questions } from '@/db/schema';
+import { inArray, eq, sql, and } from 'drizzle-orm';
+
+export async function POST(req: NextRequest) {
+  try {
+    const user = await requireAuth();
+    const body = await req.json();
+    
+    console.log('🎯 Practice generate request:', { userId: user.id, body });
+    
+    const { userId, sectionIds, questionCount, difficulty } = body;
+
+    // Verify user matches
+    if (userId !== user.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Build filter conditions - only verified and active questions
+    const filters = [
+      eq(questions.isVerified, true),
+      eq(questions.isActive, true),
+      eq(questions.status, 'approved')
+    ];
+
+    // Filter by sections if provided
+    if (sectionIds && sectionIds.length > 0) {
+      filters.push(inArray(questions.sectionId, sectionIds));
+    }
+
+    // Filter by difficulty if provided
+    if (difficulty && difficulty !== 'mixed') {
+      filters.push(eq(questions.difficultyLevel, difficulty));
+    }
+
+    console.log('🔍 Fetching questions with filters:', { sectionIds, difficulty, questionCount });
+
+    // Fetch random questions
+    const availableQuestions = await db
+      .select({
+        id: questions.id,
+        sectionId: questions.sectionId,
+        difficulty: questions.difficultyLevel,
+      })
+      .from(questions)
+      .where(and(...filters))
+      .orderBy(sql`RANDOM()`)
+      .limit(questionCount);
+
+    console.log('📊 Found questions:', availableQuestions.length);
+
+    if (availableQuestions.length === 0) {
+      return NextResponse.json(
+        { error: 'No questions available for the selected criteria' },
+        { status: 400 }
+      );
+    }
+
+    // Create a dynamic practice test
+    const [practiceTest] = await db
+      .insert(tests)
+      .values({
+        title: `${difficulty ? difficulty.charAt(0).toUpperCase() + difficulty.slice(1) : 'Mixed'} Practice Quiz`,
+        description: difficulty || 'mixed',
+        testType: 'practice',
+        totalQuestions: availableQuestions.length,
+        totalMarks: availableQuestions.length, // 1 mark per question
+        duration: 0, // Untimed
+        negativeMarking: false,
+        isPublished: false, // User-generated
+        isFree: true,
+        testPattern: { sections: sectionIds }, // Store selected sections
+        createdBy: user.id,
+      })
+      .returning();
+
+    if (!practiceTest) {
+      return NextResponse.json(
+        { error: 'Failed to create practice test' },
+        { status: 500 }
+      );
+    }
+
+    // Create test_questions records (link questions to test)
+    const testQuestionValues = availableQuestions.map((q, index) => ({
+      testId: practiceTest.id,
+      questionId: q.id,
+      marks: 1,
+      questionOrder: index + 1,
+      sectionId: q.sectionId,
+    }));
+
+    await db.insert(testQuestions).values(testQuestionValues);
+
+    // Create a practice attempt
+    const [attempt] = await db
+      .insert(userTestAttempts)
+      .values({
+        userId: user.id,
+        testId: practiceTest.id,
+        status: 'in_progress',
+        totalMarks: availableQuestions.length,
+        correctAnswers: 0,
+        incorrectAnswers: 0,
+        unanswered: availableQuestions.length,
+      })
+      .returning();
+
+    if (!attempt) {
+      return NextResponse.json(
+        { error: 'Failed to create practice attempt' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ sessionId: attempt.id, testId: practiceTest.id });
+  } catch (error) {
+    console.error('❌ Error generating quiz:', error);
+    console.error('Stack:', error instanceof Error ? error.stack : 'No stack trace');
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to generate quiz' },
+      { status: 500 }
+    );
+  }
+}

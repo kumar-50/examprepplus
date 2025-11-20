@@ -1,0 +1,35 @@
+stateDiagram-v2
+    [*] --> Pending: Admin creates question
+    
+    Pending --> Approved: Admin approves
+    Pending --> Rejected: Admin rejects
+    
+    Approved --> InTest: Added to test
+    InTest --> BeingAnswered: Student attempts
+    BeingAnswered --> Answered: Student submits answer
+    
+    Answered --> CorrectAnswer: Answer matches correctOption
+    Answered --> WrongAnswer: Answer doesn't match
+    
+    CorrectAnswer --> [*]
+    WrongAnswer --> WeakTopicIdentified: Multiple wrong answers
+    WeakTopicIdentified --> PracticeScheduled: System creates revision
+    PracticeScheduled --> BeingAnswered: Student practices again
+    
+    Rejected --> [*]: Not used in tests
+    
+    note right of Pending
+        Question status: pending
+        isVerified: false
+    end note
+    
+    note right of Approved
+        Question status: approved
+        isVerified: true
+        Can be added to tests
+    end note
+    
+    note right of WeakTopicIdentified
+        weak_topics table updated
+        Accuracy < threshold
+    end note

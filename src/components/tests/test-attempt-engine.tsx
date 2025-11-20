@@ -350,7 +350,7 @@ export function TestAttemptEngine({
             onClick={handleStartTest}
             disabled={isLoading}
             size="lg"
-            className="w-full bg-amber-500 text-black hover:bg-amber-600"
+            className="w-full"
           >
             {isLoading ? (
               <>

@@ -1,0 +1,172 @@
+---
+id: d8c2357a-ddea-4471-91c0-3c47e5b4d15f
+---
+erDiagram
+    %% ============================================
+    %% CORE ENTITIES - SIMPLIFIED VIEW
+    %% ============================================
+    
+    USERS ||--o{ SUBSCRIPTIONS : "purchases"
+    USERS ||--o{ COUPON_USAGE : "redeems"
+    USERS ||--o{ QUESTIONS : "creates and verifies"
+    USERS ||--o{ TESTS : "creates"
+    USERS ||--o{ USER_TEST_ATTEMPTS : "takes tests"
+    USERS ||--o{ WEAK_TOPICS : "struggles with"
+    USERS ||--o{ REVISION_SCHEDULE : "plans practice"
+    
+    SUBSCRIPTION_PLANS ||--o{ SUBSCRIPTIONS : "offers"
+    SUBSCRIPTIONS ||--o| COUPON_USAGE : "discounted by"
+    
+    COUPONS ||--o{ COUPON_USAGE : "applied in"
+    
+    SECTIONS ||--o{ TOPICS : "contains"
+    SECTIONS ||--o{ QUESTIONS : "categorizes"
+    SECTIONS ||--o{ TEST_QUESTIONS : "groups in test"
+    SECTIONS ||--o{ WEAK_TOPICS : "identified as weak"
+    
+    TOPICS ||--o{ QUESTIONS : "organizes"
+    
+    QUESTIONS ||--o{ TEST_QUESTIONS : "appears in"
+    QUESTIONS ||--o{ USER_ANSWERS : "answered as"
+    
+    TESTS ||--o{ TEST_QUESTIONS : "includes"
+    TESTS ||--o{ USER_TEST_ATTEMPTS : "taken as"
+    
+    USER_TEST_ATTEMPTS ||--o{ USER_ANSWERS : "contains"
+    
+    %% ============================================
+    %% ENTITY DEFINITIONS
+    %% ============================================
+    
+    USERS {
+        uuid id PK "Primary Key"
+        text email UK "Unique Email"
+        enum role "user or admin"
+        enum subscriptionStatus "free, active, expired, cancelled"
+        uuid subscriptionId FK "Links to active subscription"
+    }
+    
+    SUBSCRIPTION_PLANS {
+        uuid id PK
+        text name "Basic, Premium, Ultimate"
+        integer price "Price in paise"
+        integer durationDays "Validity period"
+    }
+    
+    SUBSCRIPTIONS {
+        uuid id PK
+        uuid userId FK "Who purchased"
+        uuid planId FK "Which plan"
+        enum paymentStatus "pending, completed, failed, refunded"
+        timestamp startDate "When it starts"
+        timestamp endDate "When it expires"
+    }
+    
+    COUPONS {
+        uuid id PK
+        text code UK "Unique coupon code"
+        text discountType "percentage or fixed"
+        integer discountValue "Amount or percentage"
+    }
+    
+    COUPON_USAGE {
+        uuid id PK
+        uuid couponId FK "Which coupon"
+        uuid userId FK "Who used it"
+        uuid subscriptionId FK "Applied to which subscription"
+        integer discountApplied "Actual discount given"
+    }
+    
+    SECTIONS {
+        uuid id PK
+        text name "Mathematics, Reasoning, GK"
+        enum examType "RRB_NTPC, SSC_CGL, BANK_PO, OTHER"
+        integer displayOrder "Sort order"
+    }
+    
+    TOPICS {
+        uuid id PK
+        text name "Algebra, Data Interpretation"
+        uuid sectionId FK "Belongs to which section"
+    }
+    
+    QUESTIONS {
+        uuid id PK
+        text questionText "The question"
+        text option1 "Choice A"
+        text option2 "Choice B"
+        text option3 "Choice C"
+        text option4 "Choice D"
+        integer correctOption "1, 2, 3, or 4"
+        uuid sectionId FK "Main category"
+        uuid topicId FK "Sub-category"
+        uuid createdBy FK "Author user"
+        uuid verifiedBy FK "Reviewer user"
+        enum difficultyLevel "easy, medium, hard"
+        enum status "pending, approved, rejected"
+    }
+    
+    TESTS {
+        uuid id PK
+        text title "Test name"
+        enum testType "mock, live, sectional, practice"
+        integer totalQuestions "Number of questions"
+        integer totalMarks "Maximum score"
+        integer duration "Time limit in minutes"
+        boolean negativeMarking "Has negative marking"
+        boolean isPublished "Available to users"
+        uuid createdBy FK "Who created it"
+    }
+    
+    TEST_QUESTIONS {
+        uuid id PK
+        uuid testId FK "Which test"
+        uuid questionId FK "Which question"
+        uuid sectionId FK "Question section"
+        integer questionOrder "Display sequence"
+        integer marks "Points for this question"
+    }
+    
+    USER_TEST_ATTEMPTS {
+        uuid id PK
+        uuid userId FK "Who took the test"
+        uuid testId FK "Which test"
+        enum status "in_progress, submitted, auto_submitted"
+        integer score "Points earned"
+        integer correctAnswers "Number correct"
+        integer incorrectAnswers "Number wrong"
+        integer unanswered "Number skipped"
+        integer timeSpent "Time taken in seconds"
+        json sectionBreakdown "Performance by section"
+        json topicBreakdown "Performance by topic"
+    }
+    
+    USER_ANSWERS {
+        uuid id PK
+        uuid attemptId FK "Which test attempt"
+        uuid questionId FK "Which question"
+        integer selectedOption "1, 2, 3, 4, or null"
+        boolean isCorrect "Right or wrong"
+        boolean isReviewed "Marked for review"
+        integer timeSpent "Seconds on question"
+    }
+    
+    WEAK_TOPICS {
+        uuid id PK
+        uuid userId FK "Which user"
+        uuid sectionId FK "Weak in which section"
+        integer totalAttempts "Times practiced"
+        integer correctAttempts "Times got correct"
+        integer accuracyPercentage "Success rate 0-100"
+        text weaknessLevel "critical, moderate, improving"
+        timestamp nextReviewDate "When to practice again"
+    }
+    
+    REVISION_SCHEDULE {
+        uuid id PK
+        uuid userId FK "Which user"
+        timestamp scheduledDate "When to practice"
+        uuid attemptId FK "Links to practice session"
+        text sectionIds "Which sections to practice"
+        integer questionCount "How many questions"
+    }

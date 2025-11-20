@@ -1,0 +1,47 @@
+stateDiagram-v2
+    [*] --> Free: User signs up
+    
+    Free --> Pending: User initiates payment
+    
+    Pending --> Active: Payment successful
+    Pending --> Failed: Payment failed
+    Pending --> Free: Payment cancelled
+    
+    Failed --> Free: User gives up
+    Failed --> Pending: User retries payment
+    
+    Active --> Expired: Subscription end date reached
+    Active --> Cancelled: User cancels subscription
+    
+    Expired --> Free: Grace period ends
+    Expired --> Active: User renews
+    
+    Cancelled --> Free: Cancellation processed
+    Cancelled --> Active: User resubscribes
+    
+    Free --> [*]: User deletes account
+    Active --> [*]: User deletes account
+    
+    note right of Free
+        subscriptionStatus: free
+        Limited access to tests
+        Can browse content
+    end note
+    
+    note right of Active
+        subscriptionStatus: active
+        Full access to all tests
+        Can take unlimited tests
+    end note
+    
+    note right of Expired
+        subscriptionStatus: expired
+        Access revoked
+        Prompt to renew
+    end note
+    
+    note right of Cancelled
+        subscriptionStatus: cancelled
+        Subscription stopped
+        Access until end date
+    end note

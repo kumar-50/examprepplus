@@ -10,6 +10,7 @@ export const attemptStatusEnum = pgEnum('attempt_status', [
 
 /**
  * User Test Attempts table - tracks each test session
+ * Supports both regular tests (mock, live, sectional) and practice sessions
  */
 export const userTestAttempts = pgTable('user_test_attempts', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -36,4 +37,6 @@ export const userTestAttempts = pgTable('user_test_attempts', {
   // For live tests - rank/percentile
   rank: integer('rank'),
   percentile: integer('percentile'), // stored as basis points (9525 = 95.25%)
+  // For practice mode - spaced repetition scheduling
+  scheduledFor: timestamp('scheduled_for'), // When this practice session is scheduled
 });

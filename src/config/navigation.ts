@@ -78,28 +78,28 @@ export const userNavItems: NavItem[] = [
     icon: 'LayoutDashboard',
   },
   {
-    title: 'My Tests',
+    title: 'Mock Tests',
     href: '/dashboard/tests',
     icon: 'BookOpen',
   },
   {
     title: 'Practice',
-    href: '/practice',
+    href: '/dashboard/practice',
     icon: 'FileText',
   },
   {
     title: 'Progress',
-    href: '/progress',
+    href: '/dashboard/progress',
     icon: 'BarChart3',
   },
   {
     title: 'Subscription',
-    href: '/subscription',
+    href: '/dashboard/subscription',
     icon: 'CreditCard',
   },
   {
     title: 'Settings',
-    href: '/settings',
+    href: '/dashboard/settings',
     icon: 'Settings',
   },
 ]

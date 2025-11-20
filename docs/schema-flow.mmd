@@ -1,0 +1,83 @@
+---
+id: bd3effca-9435-4428-94dd-a96f012fd326
+---
+flowchart TB
+    subgraph PAYMENT["💰 PAYMENT SYSTEM"]
+        direction TB
+        SP[Subscription Plans<br/>Basic/Premium/Ultimate]
+        SUB[Subscriptions<br/>User's active plan]
+        CPN[Coupons<br/>Discount codes]
+        CPU[Coupon Usage<br/>Applied discounts]
+        
+        SP -->|"User buys a plan"| SUB
+        CPN -->|"User applies coupon"| CPU
+        CPU -->|"Discount applied to"| SUB
+    end
+    
+    subgraph CONTENT["📚 CONTENT MANAGEMENT"]
+        direction TB
+        SEC[Sections<br/>Math, Reasoning, GK]
+        TOP[Topics<br/>Algebra, Geometry]
+        QUE[Questions<br/>MCQ with 4 options]
+        
+        SEC -->|"1 Section has many"| TOP
+        SEC -->|"1 Section has many"| QUE
+        TOP -->|"1 Topic has many"| QUE
+    end
+    
+    subgraph TESTING["📝 TEST SYSTEM"]
+        direction TB
+        TST[Tests<br/>Mock/Live/Sectional]
+        TQ[Test-Questions<br/>Links test to questions]
+        
+        TST -->|"1 Test has many"| TQ
+        QUE -.->|"Many Questions in"| TQ
+    end
+    
+    subgraph TAKING["✍️ TEST TAKING"]
+        direction TB
+        ATT[Test Attempts<br/>User takes test]
+        ANS[User Answers<br/>Each question answer]
+        
+        ATT -->|"1 Attempt has many"| ANS
+        QUE -.->|"Questions answered in"| ANS
+    end
+    
+    subgraph LEARNING["🎯 PERSONALIZED LEARNING"]
+        direction TB
+        WEAK[Weak Topics<br/>AI identifies struggles]
+        REV[Revision Schedule<br/>Practice sessions]
+        
+        ATT -.->|"Analyzed to find"| WEAK
+        SEC -.->|"Weak in which section"| WEAK
+        WEAK -->|"Creates"| REV
+        REV -.->|"Generates practice as"| ATT
+    end
+    
+    subgraph USER_SECTION["👤 USER"]
+        U[Users<br/>Students/Admins]
+    end
+    
+    %% User interactions
+    U -->|"Purchases"| SUB
+    U -->|"Redeems"| CPN
+    U -->|"Creates/Verifies"| QUE
+    U -->|"Creates"| TST
+    U -->|"Starts"| ATT
+    U -->|"Has"| WEAK
+    U -->|"Plans"| REV
+    
+    %% Styling
+    classDef userStyle fill:#3b82f6,stroke:#1e40af,color:#fff,stroke-width:3px
+    classDef paymentStyle fill:#10b981,stroke:#047857,color:#fff
+    classDef contentStyle fill:#8b5cf6,stroke:#6d28d9,color:#fff
+    classDef testStyle fill:#f59e0b,stroke:#d97706,color:#fff
+    classDef activityStyle fill:#ef4444,stroke:#dc2626,color:#fff
+    classDef learningStyle fill:#ec4899,stroke:#be185d,color:#fff
+    
+    class U userStyle
+    class SP,SUB,CPN,CPU paymentStyle
+    class SEC,TOP,QUE contentStyle
+    class TST,TQ testStyle
+    class ATT,ANS activityStyle
+    class WEAK,REV learningStyle

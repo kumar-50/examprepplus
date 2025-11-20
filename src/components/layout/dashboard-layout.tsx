@@ -9,6 +9,7 @@ import { UserNav } from '@/components/auth/user-nav'
 import { ThemeSwitcher } from '@/components/theme-switcher'
 import { NavItem } from '@/config/navigation'
 import { cn } from '@/lib/utils'
+import { Logo } from '@/components/ui/logo'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -46,19 +47,10 @@ export function DashboardLayout({ children, navItems, title, user }: DashboardLa
         {/* Logo/Brand */}
         <div className={cn("flex h-16 shrink-0 items-center border-b px-4", sidebarCollapsed && "justify-center")}>
           {!sidebarCollapsed && (
-            <Link href="/" className="flex items-center gap-2 font-semibold">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-black">
-                <span className="text-sm font-bold">E</span>
-              </div>
-              <span className="text-lg">ExamPrepPlus</span>
-            </Link>
+            <Logo width={32} height={25} showText={true} href="/" />
           )}
           {sidebarCollapsed && (
-            <Link href="/" className="flex items-center justify-center">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-black">
-                <span className="text-sm font-bold">E</span>
-              </div>
-            </Link>
+            <Logo width={32} height={25} showText={false} href="/" />
           )}
           <Button
             variant="ghost"
@@ -79,7 +71,11 @@ export function DashboardLayout({ children, navItems, title, user }: DashboardLa
               </p>
             </div>
           )}
-          <SidebarNav items={navItems} collapsed={sidebarCollapsed} />
+          <SidebarNav 
+            items={navItems} 
+            collapsed={sidebarCollapsed} 
+            onLinkClick={() => setSidebarOpen(false)}
+          />
         </div>
 
         {/* User info at bottom */}
@@ -87,7 +83,7 @@ export function DashboardLayout({ children, navItems, title, user }: DashboardLa
           {!sidebarCollapsed && (
             <div className="p-4">
               <div className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-sidebar-accent">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500 text-black">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-prussian-blue-500 text-white">
                   <span className="text-sm font-semibold">
                     {user.fullName?.charAt(0) || user.email.charAt(0).toUpperCase()}
                   </span>
@@ -101,7 +97,7 @@ export function DashboardLayout({ children, navItems, title, user }: DashboardLa
           )}
           {sidebarCollapsed && (
             <div className="flex items-center justify-center p-4">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500 text-black">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-prussian-blue-500 text-white">
                 <span className="text-sm font-semibold">
                   {user.fullName?.charAt(0) || user.email.charAt(0).toUpperCase()}
                 </span>

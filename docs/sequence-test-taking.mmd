@@ -1,0 +1,42 @@
+sequenceDiagram
+    participant Student
+    participant Frontend
+    participant API
+    participant Database
+    participant Timer
+    
+    Note over Student,Timer: Test Taking Complete Flow
+    
+    Student->>Frontend: Click "Start Test"
+    Frontend->>API: POST /tests/{id}/start
+    API->>Database: Check user subscription
+    Database-->>API: Active subscription
+    API->>Database: Create user_test_attempt
+    Database-->>API: Attempt ID + Questions
+    API-->>Frontend: Test data + Timer duration
+    
+    Frontend->>Timer: Start countdown
+    Timer-->>Frontend: Time updates
+    
+    loop For each question
+        Student->>Frontend: Select answer
+        Frontend->>API: POST /attempts/{id}/answer
+        API->>Database: Save/Update user_answer
+        Database-->>API: Saved
+        API-->>Frontend: Confirmed
+    end
+    
+    alt Time expires
+        Timer->>Frontend: Time up!
+        Frontend->>API: POST /attempts/{id}/submit (auto)
+    else Student submits
+        Student->>Frontend: Click submit
+        Frontend->>API: POST /attempts/{id}/submit
+    end
+    
+    API->>Database: Calculate score & breakdown
+    API->>Database: Update attempt (status=submitted)
+    API->>Database: Analyze for weak_topics
+    Database-->>API: Results + Analytics
+    API-->>Frontend: Score + Section breakdown
+    Frontend-->>Student: Show results page

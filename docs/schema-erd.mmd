@@ -1,0 +1,263 @@
+---
+id: 5969334d-c323-442b-b9e2-45b56d1262ba
+---
+erDiagram
+    %% ============================================
+    %% USER MANAGEMENT
+    %% ============================================
+    
+    users {
+        uuid id PK
+        text fullName
+        text email UK "UNIQUE"
+        text phone
+        text avatarUrl
+        enum role "user|admin"
+        enum subscriptionStatus "free|active|expired|cancelled"
+        uuid subscriptionId FK
+        boolean isActive
+        timestamp lastLoginAt
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    %% ============================================
+    %% SUBSCRIPTION & PAYMENT
+    %% ============================================
+
+    subscription_plans {
+        uuid id PK
+        text name "Basic|Premium|Ultimate"
+        text description
+        integer price "in paise"
+        text currency "INR"
+        integer durationDays
+        text features
+        boolean isActive
+        integer displayOrder
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    subscriptions {
+        uuid id PK
+        uuid userId FK
+        uuid planId FK
+        text razorpayOrderId
+        text razorpayPaymentId
+        text razorpaySignature
+        enum paymentStatus "pending|completed|failed|refunded"
+        timestamp startDate
+        timestamp endDate
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    coupons {
+        uuid id PK
+        text code UK "UNIQUE"
+        text description
+        text discountType "percentage|fixed"
+        integer discountValue
+        integer maxUses "null=unlimited"
+        integer usedCount
+        timestamp validFrom
+        timestamp validUntil
+        boolean isActive
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    coupon_usage {
+        uuid id PK
+        uuid couponId FK
+        uuid userId FK
+        uuid subscriptionId FK
+        integer discountApplied "in paise"
+        timestamp usedAt
+    }
+
+    %% ============================================
+    %% CONTENT STRUCTURE
+    %% ============================================
+
+    sections {
+        uuid id PK
+        text name "Mathematics|Reasoning|GK"
+        text description
+        integer displayOrder
+        enum examType "RRB_NTPC|SSC_CGL|BANK_PO|OTHER"
+        timestamp createdAt
+    }
+
+    topics {
+        uuid id PK
+        text name "Algebra|DataInterpretation"
+        uuid sectionId FK
+        text description
+        timestamp createdAt
+    }
+
+    questions {
+        uuid id PK
+        text questionText
+        text option1
+        text option2
+        text option3
+        text option4
+        integer correctOption "1-4"
+        text explanation
+        uuid sectionId FK
+        uuid topicId FK
+        enum difficultyLevel "easy|medium|hard"
+        boolean hasEquation
+        text imageUrl
+        uuid createdBy FK
+        boolean isActive
+        enum status "pending|approved|rejected"
+        boolean isVerified
+        uuid verifiedBy FK
+        timestamp verifiedAt
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    %% ============================================
+    %% TEST MANAGEMENT
+    %% ============================================
+
+    tests {
+        uuid id PK
+        text title
+        text description
+        enum testType "mock|live|sectional|practice"
+        integer totalQuestions
+        integer totalMarks
+        integer duration "minutes"
+        boolean negativeMarking
+        integer negativeMarkingValue "basis points"
+        boolean isPublished
+        boolean isFree
+        text bannerImage
+        text instructions
+        json testPattern
+        real averageRating
+        integer totalRatings
+        integer totalAttempts
+        timestamp scheduledAt
+        uuid createdBy FK
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    test_questions {
+        uuid id PK
+        uuid testId FK
+        uuid questionId FK
+        integer questionOrder
+        integer marks
+        uuid sectionId FK
+    }
+
+    %% ============================================
+    %% USER ACTIVITY
+    %% ============================================
+
+    user_test_attempts {
+        uuid id PK
+        uuid userId FK
+        uuid testId FK
+        enum status "in_progress|submitted|auto_submitted"
+        integer score
+        integer totalMarks
+        integer correctAnswers
+        integer incorrectAnswers
+        integer unanswered
+        json sectionBreakdown
+        json topicBreakdown
+        integer timeSpent "seconds"
+        timestamp startedAt
+        timestamp submittedAt
+        integer rank
+        integer percentile "basis points"
+        timestamp scheduledFor
+    }
+
+    user_answers {
+        uuid id PK
+        uuid attemptId FK
+        uuid questionId FK
+        integer selectedOption "1-4 or null"
+        boolean isCorrect
+        boolean isReviewed
+        integer timeSpent "seconds"
+        timestamp answeredAt
+        timestamp createdAt
+    }
+
+    %% ============================================
+    %% PRACTICE & REVISION
+    %% ============================================
+
+    weak_topics {
+        uuid id PK
+        uuid userId FK
+        uuid sectionId FK
+        integer totalAttempts
+        integer correctAttempts
+        integer accuracyPercentage "0-100"
+        timestamp lastPracticedAt
+        timestamp nextReviewDate
+        integer reviewCount
+        text weaknessLevel "critical|moderate|improving"
+        timestamp identifiedAt
+        timestamp updatedAt
+    }
+
+    revision_schedule {
+        uuid id PK
+        uuid userId FK
+        timestamp scheduledDate
+        uuid attemptId
+        text sectionIds "comma-separated"
+        text difficulty
+        integer questionCount
+        timestamp createdAt
+    }
+
+    %% ============================================
+    %% RELATIONSHIPS
+    %% ============================================
+
+    %% User & Subscriptions
+    users ||--o{ subscriptions : "has"
+    subscription_plans ||--o{ subscriptions : "defines"
+    
+    %% Coupons
+    coupons ||--o{ coupon_usage : "used in"
+    users ||--o{ coupon_usage : "uses"
+    subscriptions ||--o| coupon_usage : "applied to"
+    
+    %% Content Hierarchy
+    sections ||--o{ topics : "contains"
+    sections ||--o{ questions : "categorizes"
+    topics ||--o{ questions : "groups"
+    users ||--o{ questions : "creates"
+    users ||--o{ questions : "verifies"
+    
+    %% Test Structure
+    users ||--o{ tests : "creates"
+    tests ||--o{ test_questions : "contains"
+    questions ||--o{ test_questions : "included in"
+    sections ||--o{ test_questions : "organizes"
+    
+    %% User Activity
+    users ||--o{ user_test_attempts : "attempts"
+    tests ||--o{ user_test_attempts : "attempted by"
+    user_test_attempts ||--o{ user_answers : "has"
+    questions ||--o{ user_answers : "answered in"
+    
+    %% Practice & Revision
+    users ||--o{ weak_topics : "has"
+    sections ||--o{ weak_topics : "identified in"
+    users ||--o{ revision_schedule : "schedules"

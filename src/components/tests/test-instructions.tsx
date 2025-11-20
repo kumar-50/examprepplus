@@ -64,7 +64,7 @@ export function TestInstructions({
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <Badge className="uppercase bg-amber-500 text-black hover:bg-amber-600">
+            <Badge className="uppercase">
               {test.testType}
             </Badge>
             <h1 className="text-3xl font-bold">
@@ -250,7 +250,7 @@ export function TestInstructions({
             onClick={handleStartTest}
             disabled={!acceptedTerms}
             size="lg"
-            className="px-8 bg-amber-500 text-black hover:bg-amber-600"
+            className="px-8"
           >
             I'm Ready, Start Test
           </Button>

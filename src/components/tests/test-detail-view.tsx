@@ -68,11 +68,11 @@ export function TestDetailView({ test, userId, attemptHistory }: TestDetailViewP
           </h1>
 
           <div className="flex flex-wrap items-center gap-4">
-            <Badge className="bg-amber-500 hover:bg-amber-500 text-white">
+            <Badge className="text-white">
               <Clock className="w-4 h-4 mr-1" />
               {test.duration} min
             </Badge>
-            <Badge className="bg-amber-500 hover:bg-amber-500 text-white">
+            <Badge className="text-white">
               <FileText className="w-4 h-4 mr-1" />
               {test.totalQuestions} Questions
             </Badge>
@@ -186,7 +186,7 @@ export function TestDetailView({ test, userId, attemptHistory }: TestDetailViewP
 
             {test.isFree ? (
               <Link href={`/dashboard/tests/${test.id}/attempt`}>
-                <Button className="w-full bg-amber-500 hover:bg-amber-600 text-black" size="lg">
+                <Button className="w-full" size="lg">
                   <Play className="w-5 h-5 mr-2" />
                   Start Test
                 </Button>

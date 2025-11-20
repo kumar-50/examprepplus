@@ -1,0 +1,32 @@
+sequenceDiagram
+    participant Student
+    participant Frontend
+    participant API
+    participant Database
+    participant Payment
+    
+    Note over Student,Payment: User Registration & Subscription Flow
+    
+    Student->>Frontend: Sign up with email
+    Frontend->>API: POST /auth/signup
+    API->>Database: Create user record
+    Database-->>API: User created
+    API-->>Frontend: Success + Auth token
+    Frontend-->>Student: Welcome screen
+    
+    Student->>Frontend: Select Premium plan
+    Frontend->>API: POST /subscriptions/create
+    API->>Database: Check subscription_plans
+    Database-->>API: Plan details (price, duration)
+    API->>Payment: Create Razorpay order
+    Payment-->>API: Order ID
+    API-->>Frontend: Order details
+    
+    Frontend->>Payment: Show payment gateway
+    Student->>Payment: Complete payment
+    Payment-->>API: Webhook: Payment success
+    API->>Database: Create subscription record
+    API->>Database: Update user subscription_status
+    Database-->>API: Updated
+    API-->>Frontend: Subscription activated
+    Frontend-->>Student: Access granted

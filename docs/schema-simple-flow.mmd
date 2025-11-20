@@ -1,0 +1,37 @@
+graph LR
+    subgraph "1️⃣ USER JOINS & PAYS"
+        A[User Signs Up] --> B[Browses Plans]
+        B --> C[Applies Coupon Optional]
+        C --> D[Purchases Subscription]
+    end
+    
+    subgraph "2️⃣ ADMIN CREATES CONTENT"
+        E[Admin Creates Sections] --> F[Admin Creates Topics]
+        F --> G[Admin Creates Questions]
+        G --> H[Admin Creates Tests]
+        H --> I[Admin Adds Questions to Test]
+    end
+    
+    subgraph "3️⃣ STUDENT TAKES TEST"
+        J[Student Browses Tests] --> K[Student Starts Test]
+        K --> L[Attempt Record Created]
+        L --> M[Student Answers Each Question]
+        M --> N[Answer Records Saved]
+        N --> O[Student Submits Test]
+    end
+    
+    subgraph "4️⃣ SYSTEM ANALYZES PERFORMANCE"
+        P[System Calculates Score] --> Q[System Analyzes Weak Areas]
+        Q --> R[Weak Topics Identified]
+        R --> S[Revision Schedule Created]
+        S --> T[Student Gets Practice Tests]
+    end
+    
+    D -.-> J
+    O -.-> P
+    T -.-> K
+    
+    style A fill:#e0f2fe
+    style J fill:#fef3c7
+    style P fill:#fce7f3
+    style E fill:#ddd6fe

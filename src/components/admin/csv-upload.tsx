@@ -700,7 +700,6 @@ export function CSVUploadComponent() {
                                   <Button
                                     onClick={() => handleSaveErrorFix(idx)}
                                     size="sm"
-                                    className="bg-green-600 hover:bg-green-700"
                                   >
                                     <Save className="mr-2 h-4 w-4" />
                                     Save & Add to Import
