@@ -78,7 +78,7 @@ export function TestAttemptEngine({
   const [currentSectionId, setCurrentSectionId] = useState<string | null>(null);
 
   // Group questions by section
-  const questionsBySection = questions.reduce((acc, question) => {
+  const questionsBySection = (questions || []).reduce((acc, question) => {
     const sectionId = question.sectionId || 'default';
     if (!acc[sectionId]) {
       acc[sectionId] = {

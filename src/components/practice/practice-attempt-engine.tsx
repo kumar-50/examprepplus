@@ -58,9 +58,7 @@ interface PracticeAttemptEngineProps {
 interface Answer {
   questionId: string;
   selectedOption: number | null;
-  isCorrect: boolean | null;
-  isAnswered: boolean;
-  showExplanation: boolean;
+  timeSpent?: number;
 }
 
 export function PracticeAttemptEngine({ 
@@ -73,72 +71,74 @@ export function PracticeAttemptEngine({
   const [answers, setAnswers] = useState<Map<string, Answer>>(new Map());
   const [showHindi, setShowHindi] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
+  const [questionStartTimes, setQuestionStartTimes] = useState<Map<string, number>>(new Map());
 
   const currentQuestion = questions[currentQuestionIndex];
   const currentAnswer = currentQuestion ? answers.get(currentQuestion.id) : undefined;
 
   useEffect(() => {
-    // Reset timer when question changes
-    setQuestionStartTime(Date.now());
-  }, [currentQuestionIndex]);
+    // Set start time for new questions
+    if (currentQuestion && !questionStartTimes.has(currentQuestion.id)) {
+      setQuestionStartTimes(prev => new Map(prev).set(currentQuestion.id, Date.now()));
+    }
+  }, [currentQuestionIndex, currentQuestion, questionStartTimes]);
 
   const handleOptionSelect = (option: number) => {
-    if (!currentQuestion || currentAnswer?.isAnswered) return; // Don't allow changing after submission
+    if (!currentQuestion) return;
 
     setAnswers(prev => {
       const newAnswers = new Map(prev);
       newAnswers.set(currentQuestion.id, {
         questionId: currentQuestion.id,
         selectedOption: option,
-        isCorrect: null,
-        isAnswered: false,
-        showExplanation: false,
       });
       return newAnswers;
     });
   };
 
-  const handleSubmitAnswer = async () => {
-    if (!currentQuestion || !currentAnswer?.selectedOption) {
-      toast.error('Please select an answer');
+  const handleSubmitQuiz = async () => {
+    // Check if all questions are answered
+    const unansweredCount = questions.filter(q => !answers.has(q.id) || !answers.get(q.id)?.selectedOption).length;
+    
+    if (unansweredCount > 0) {
+      toast.error(`Please answer all questions. ${unansweredCount} question(s) remaining.`);
       return;
     }
-
-    const isCorrect = currentAnswer.selectedOption === currentQuestion.correctAnswer;
-    const timeSpent = Math.floor((Date.now() - questionStartTime) / 1000);
 
     setIsSubmitting(true);
 
     try {
-      // Save answer to database
-      await fetch('/api/practice/answer', {
+      // Calculate time spent for each question
+      const answersWithTime = questions.map(q => {
+        const answer = answers.get(q.id)!;
+        const startTime = questionStartTimes.get(q.id) || Date.now();
+        const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+        const isCorrect = answer.selectedOption === q.correctAnswer;
+        
+        return {
+          questionId: q.id,
+          selectedOption: answer.selectedOption,
+          isCorrect,
+          timeSpent,
+        };
+      });
+
+      // Submit all answers at once
+      await fetch('/api/practice/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: session.id,
           userId,
-          questionId: currentQuestion.id,
-          selectedOption: currentAnswer.selectedOption,
-          isCorrect,
-          timeSpent,
+          answers: answersWithTime,
         }),
       });
 
-      // Update local state
-      setAnswers(prev => {
-        const newAnswers = new Map(prev);
-        newAnswers.set(currentQuestion.id, {
-          ...currentAnswer,
-          isCorrect,
-          isAnswered: true,
-          showExplanation: true,
-        });
-        return newAnswers;
-      });
+      toast.success('Quiz submitted successfully!');
+      router.push(`/dashboard/practice/review/${session.id}`);
     } catch (error) {
-      console.error('Error submitting answer:', error);
-      toast.error('Failed to submit answer');
+      console.error('Error submitting quiz:', error);
+      toast.error('Failed to submit quiz');
     } finally {
       setIsSubmitting(false);
     }
@@ -158,46 +158,13 @@ export function PracticeAttemptEngine({
     }
   };
 
-  const handleFinish = async () => {
-    try {
-      await fetch('/api/practice/complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId: session.id,
-          userId,
-        }),
-      });
-
-      toast.success('Practice session completed!');
-      router.push('/dashboard/practice');
-    } catch (error) {
-      console.error('Error completing session:', error);
-      toast.error('Failed to complete session');
-    }
-  };
-
-  const answeredCount = Array.from(answers.values()).filter(a => a.isAnswered).length;
-  const correctCount = Array.from(answers.values()).filter(a => a.isCorrect).length;
+  const answeredCount = Array.from(answers.values()).filter(a => a.selectedOption !== null).length;
   const progressPercentage = (answeredCount / questions.length) * 100;
 
   const getOptionClass = (optionNumber: number) => {
-    if (!currentQuestion || !currentAnswer?.isAnswered) {
-      return currentAnswer?.selectedOption === optionNumber
-        ? 'border-orange-500 bg-orange-500/10'
-        : 'border-prussian-blue-500/20 hover:border-prussian-blue-500/40';
-    }
-
-    // After answer is submitted
-    if (optionNumber === currentQuestion.correctAnswer) {
-      return 'border-green-500 bg-green-500/10';
-    }
-    
-    if (currentAnswer.selectedOption === optionNumber && !currentAnswer.isCorrect) {
-      return 'border-red-500 bg-red-500/10';
-    }
-
-    return 'border-prussian-blue-500/20';
+    return currentAnswer?.selectedOption === optionNumber
+      ? 'border-orange-500 bg-orange-500/10'
+      : 'border-prussian-blue-500/20 hover:border-prussian-blue-500/40';
   };
 
   if (!currentQuestion) {
@@ -224,12 +191,6 @@ export function PracticeAttemptEngine({
                 <span className="text-muted-foreground">Progress:</span>
                 <span className="ml-2 font-semibold text-orange-500">
                   {answeredCount}/{questions.length}
-                </span>
-              </div>
-              <div className="text-sm">
-                <span className="text-muted-foreground">Correct:</span>
-                <span className="ml-2 font-semibold text-green-500">
-                  {correctCount}
                 </span>
               </div>
             </div>
@@ -291,7 +252,6 @@ export function PracticeAttemptEngine({
                 <RadioGroup
                   value={currentAnswer?.selectedOption?.toString() || ''}
                   onValueChange={(value) => handleOptionSelect(parseInt(value))}
-                  disabled={currentAnswer?.isAnswered}
                   className="space-y-1"
                 >
                   {[1, 2, 3, 4].map((optionNum) => {
@@ -303,16 +263,14 @@ export function PracticeAttemptEngine({
                       <div
                         key={optionNum}
                         className={cn(
-                          'relative flex items-start space-x-3 rounded-lg border-2 p-4 transition-all',
-                          getOptionClass(optionNum),
-                          !currentAnswer?.isAnswered && 'cursor-pointer'
+                          'relative flex items-start space-x-3 rounded-lg border-2 p-4 transition-all cursor-pointer',
+                          getOptionClass(optionNum)
                         )}
                       >
                         <RadioGroupItem
                           value={optionNum.toString()}
                           id={`option-${optionNum}`}
                           className="mt-0.5"
-                          disabled={currentAnswer?.isAnswered}
                         />
                         <Label
                           htmlFor={`option-${optionNum}`}
@@ -320,51 +278,33 @@ export function PracticeAttemptEngine({
                         >
                           {optionText}
                         </Label>
-                        {currentAnswer?.isAnswered && optionNum === currentQuestion.correctAnswer && (
-                          <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
-                        )}
-                        {currentAnswer?.isAnswered && 
-                         currentAnswer.selectedOption === optionNum && 
-                         !currentAnswer.isCorrect && (
-                          <XCircle className="h-5 w-5 text-red-500 shrink-0" />
-                        )}
                       </div>
                     );
                   })}
                 </RadioGroup>
 
-                {/* Feedback */}
-                {currentAnswer?.isAnswered && (
+                {/* Submit Button - shown at bottom of all questions on last question */}
+                {currentQuestionIndex === questions.length - 1 && (
                   <div className="mt-6">
-                    <Alert className={currentAnswer.isCorrect ? 'border-green-500/50 bg-green-500/5' : 'border-red-500/50 bg-red-500/5'}>
-                      <div className="flex items-center gap-2">
-                        {currentAnswer.isCorrect ? (
-                          <CheckCircle2 className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <XCircle className="h-5 w-5 text-red-500" />
-                        )}
-                        <AlertDescription className="font-medium">
-                          {currentAnswer.isCorrect ? 'Correct Answer!' : 'Incorrect Answer'}
-                        </AlertDescription>
-                      </div>
-                    </Alert>
-                  </div>
-                )}
-
-                {/* Explanation */}
-                {currentAnswer?.showExplanation && currentQuestion.explanation && (
-                  <div className="mt-6">
-                    <div className="rounded-lg border border-orange-500/20 bg-orange-500/5 p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Lightbulb className="h-5 w-5 text-orange-500" />
-                        <h4 className="font-semibold text-orange-500">Explanation</h4>
-                      </div>
-                      <p className="text-sm leading-relaxed text-foreground">
-                        {showHindi && currentQuestion.explanationHindi
-                          ? currentQuestion.explanationHindi
-                          : currentQuestion.explanation}
+                    <Button
+                      onClick={handleSubmitQuiz}
+                      disabled={isSubmitting || answeredCount < questions.length}
+                      className="w-full bg-green-500 hover:bg-green-600 text-white"
+                      size="lg"
+                    >
+                      {isSubmitting ? (
+                        'Submitting...'
+                      ) : answeredCount < questions.length ? (
+                        `Submit Quiz (${answeredCount}/${questions.length} answered)`
+                      ) : (
+                        'Submit Quiz'
+                      )}
+                    </Button>
+                    {answeredCount < questions.length && (
+                      <p className="text-sm text-muted-foreground text-center mt-2">
+                        Please answer all questions before submitting
                       </p>
-                    </div>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -381,23 +321,7 @@ export function PracticeAttemptEngine({
                 Previous
               </Button>
 
-              {!currentAnswer?.isAnswered ? (
-                <Button
-                  onClick={handleSubmitAnswer}
-                  disabled={!currentAnswer?.selectedOption || isSubmitting}
-                  className="bg-orange-500 hover:bg-orange-600 text-white"
-                >
-                  {isSubmitting ? 'Submitting...' : 'Submit Answer'}
-                </Button>
-              ) : currentQuestionIndex === questions.length - 1 ? (
-                <Button
-                  onClick={handleFinish}
-                  className="bg-green-500 hover:bg-green-600 text-white"
-                >
-                  Finish Practice
-                  <CheckCircle2 className="ml-2 h-4 w-4" />
-                </Button>
-              ) : (
+              {currentQuestionIndex < questions.length - 1 && (
                 <Button
                   onClick={handleNext}
                   className="bg-orange-500 hover:bg-orange-600 text-white"
@@ -422,9 +346,8 @@ export function PracticeAttemptEngine({
                 className={cn(
                   'aspect-square rounded-md text-sm font-medium transition-colors border-2',
                   idx === currentQuestionIndex && 'ring-2 ring-orange-500 ring-offset-2',
-                  !answer?.isAnswered && 'border-prussian-blue-500/20 bg-background hover:bg-accent',
-                  answer?.isAnswered && answer?.isCorrect && 'border-green-500 bg-green-500/20 text-green-700',
-                  answer?.isAnswered && !answer?.isCorrect && 'border-red-500 bg-red-500/20 text-red-700'
+                  !answer?.selectedOption && 'border-prussian-blue-500/20 bg-background hover:bg-accent',
+                  answer?.selectedOption && 'border-orange-500 bg-orange-500/20 text-orange-700'
                 )}
               >
                 {idx + 1}
@@ -435,12 +358,8 @@ export function PracticeAttemptEngine({
 
         <div className="mt-6 space-y-2 text-xs">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded border-2 border-green-500 bg-green-500/20" />
-            <span>Correct</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded border-2 border-red-500 bg-red-500/20" />
-            <span>Incorrect</span>
+            <div className="h-6 w-6 rounded border-2 border-orange-500 bg-orange-500/20" />
+            <span>Answered</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="h-6 w-6 rounded border-2 border-prussian-blue-500/20 bg-background" />

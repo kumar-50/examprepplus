@@ -222,7 +222,8 @@ export default function TestBuilderPage() {
       // Load section patterns if it's a pattern-based test
       if (test.testPattern && typeof test.testPattern === 'object') {
         const patterns: SectionPattern[] = [];
-        for (const [sectionId, count] of Object.entries(test.testPattern)) {
+        for (const [sectionId, count] of Object.entries(test.testPattern || {})) {
+          if (!sectionId || typeof count !== 'number') continue;
           const section = loadedSections.find(s => s.id === sectionId);
           patterns.push({
             sectionId,
@@ -1021,12 +1022,12 @@ export default function TestBuilderPage() {
                 <p className="text-xl font-semibold">{formData.duration} minutes</p>
               </div>
 
-              {Object.keys(sectionBreakdown).length > 0 && (
+              {Object.keys(sectionBreakdown || {}).length > 0 && (
                 <>
                   <div className="border-t pt-4">
                     <p className="text-sm font-medium mb-2">Section Breakdown</p>
                     <div className="space-y-2">
-                      {Object.entries(sectionBreakdown).map(([section, data]) => (
+                      {Object.entries(sectionBreakdown || {}).map(([section, data]) => (
                         <div key={section} className="flex justify-between text-sm">
                           <span>{section}</span>
                           <span className="font-medium">

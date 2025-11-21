@@ -4,6 +4,7 @@ import { db } from '@/db';
 import { tests, testQuestions, questions, userTestAttempts, userAnswers, sections } from '@/db/schema';
 import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/server';
+import { updateWeakTopicsAfterTest } from '@/lib/analytics/weak-topic-analyzer';
 
 export interface TestFilters {
   search?: string;
@@ -424,6 +425,14 @@ export async function submitAttempt(attemptId: string) {
       totalAttempts: sql`${tests.totalAttempts} + 1`,
     })
     .where(eq(tests.id, attempt.testId));
+
+  // Update weak topics based on test performance (for all test types)
+  try {
+    await updateWeakTopicsAfterTest(user.id, attemptId);
+  } catch (error) {
+    console.error('Failed to update weak topics:', error);
+    // Don't fail the submission if weak topic analysis fails
+  }
 
   return {
     attemptId,

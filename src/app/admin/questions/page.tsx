@@ -98,7 +98,7 @@ export default function QuestionsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  const pageSize = 20;
+  const [pageSize, setPageSize] = useState(20);
 
   const [formData, setFormData] = useState<QuestionFormData>({
     questionText: '',
@@ -127,7 +127,12 @@ export default function QuestionsPage() {
 
   useEffect(() => {
     fetchQuestions();
-  }, [currentPage, activeTab, filterSection, filterTopic, filterDifficulty]);
+  }, [currentPage, pageSize, activeTab, filterSection, filterTopic, filterDifficulty]);
+
+  // Reset to first page when pageSize changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [pageSize]);
 
   useEffect(() => {
     if (formData.sectionId) {
@@ -539,6 +544,7 @@ export default function QuestionsPage() {
             totalItems={total}
             onPaginationChange={(pagination) => {
               setCurrentPage(pagination.pageIndex + 1);
+              setPageSize(pagination.pageSize);
             }}
             storageKey="questions-table-state"
           />

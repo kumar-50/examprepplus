@@ -94,7 +94,7 @@ export async function GET(
       questions: testQuestionsList,
       sectionBreakdown,
       totalQuestions: testQuestionsList.length,
-      totalMarks: testQuestionsList.reduce((sum, q) => sum + (q.marks || 0), 0),
+      totalMarks: (testQuestionsList || []).reduce((sum, q) => sum + (q.marks || 0), 0),
     });
   } catch (error: any) {
     console.error('Error fetching test questions:', error);
@@ -191,7 +191,7 @@ export async function POST(
       .where(eq(testQuestions.testId, testId));
 
     const totalQuestions = allTestQuestions.length;
-    const totalMarks = allTestQuestions.reduce((sum, q) => sum + q.marks, 0);
+    const totalMarks = (allTestQuestions || []).reduce((sum, q) => sum + (q.marks || 0), 0);
 
     await db
       .update(tests)

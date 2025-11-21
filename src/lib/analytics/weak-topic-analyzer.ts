@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { userAnswers, questions, topics, weakTopics, userTestAttempts } from '@/db/schema';
+import { userAnswers, questions, topics, weakTopics, userTestAttempts, sections } from '@/db/schema';
 import { eq, sql, and } from 'drizzle-orm';
 
 interface TopicPerformance {
@@ -11,9 +11,82 @@ interface TopicPerformance {
   weaknessLevel: 'critical' | 'moderate' | 'improving' | null;
 }
 
+interface SectionPerformance {
+  sectionId: string;
+  sectionName: string;
+  totalAttempts: number;
+  correctAttempts: number;
+  accuracyPercentage: number;
+  weaknessLevel: 'critical' | 'moderate' | 'improving' | null;
+}
+
+/**
+ * Updates weak topics immediately after a test submission
+ * Works for ALL test types (practice, mock, live, sectional)
+ * Analyzes by section for better statistical significance
+ */
+export async function updateWeakTopicsAfterTest(userId: string, attemptId: string): Promise<void> {
+  // Get all answers for this specific attempt with section information
+  const answersWithSections = await db
+    .select({
+      questionId: userAnswers.questionId,
+      isCorrect: userAnswers.isCorrect,
+      sectionId: questions.sectionId,
+    })
+    .from(userAnswers)
+    .innerJoin(questions, eq(userAnswers.questionId, questions.id))
+    .where(eq(userAnswers.attemptId, attemptId));
+
+  // Group by section
+  const sectionPerformance = new Map<string, { correct: number; total: number }>();
+  
+  for (const answer of answersWithSections) {
+    if (answer.sectionId) {
+      const current = sectionPerformance.get(answer.sectionId) || { correct: 0, total: 0 };
+      sectionPerformance.set(answer.sectionId, {
+        correct: current.correct + (answer.isCorrect ? 1 : 0),
+        total: current.total + 1,
+      });
+    }
+  }
+
+  // Update weak topics for sections with < 60% accuracy
+  for (const [sectionId, performance] of sectionPerformance.entries()) {
+    const accuracy = (performance.correct / performance.total) * 100;
+    
+    if (accuracy < 60) {
+      const weaknessLevel = accuracy < 40 ? 'critical' : 'moderate';
+      
+      await db
+        .insert(weakTopics)
+        .values({
+          userId,
+          sectionId,
+          totalAttempts: performance.total,
+          correctAttempts: performance.correct,
+          accuracyPercentage: Math.round(accuracy),
+          weaknessLevel,
+          lastPracticedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: [weakTopics.userId, weakTopics.sectionId],
+          set: {
+            totalAttempts: sql`${weakTopics.totalAttempts} + ${performance.total}`,
+            correctAttempts: sql`${weakTopics.correctAttempts} + ${performance.correct}`,
+            accuracyPercentage: sql`ROUND((${weakTopics.correctAttempts} + ${performance.correct})::numeric / (${weakTopics.totalAttempts} + ${performance.total}) * 100)`,
+            weaknessLevel,
+            lastPracticedAt: new Date(),
+            updatedAt: new Date(),
+          },
+        });
+    }
+  }
+}
+
 /**
  * Analyzes a user's test performance and identifies weak topics
  * This should be called after a user completes a test
+ * @deprecated Use updateWeakTopicsAfterTest instead for better performance
  */
 export async function analyzeUserWeakTopics(userId: string): Promise<void> {
   // Step 1: Get all user's answers with topic information

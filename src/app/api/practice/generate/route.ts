@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     
     console.log('🎯 Practice generate request:', { userId: user.id, body });
     
-    const { userId, sectionIds, questionCount, difficulty } = body;
+    const { userId, sectionIds, topicIds, questionCount, difficulty, customTitle } = body;
 
     // Verify user matches
     if (userId !== user.id) {
@@ -28,8 +28,11 @@ export async function POST(req: NextRequest) {
       eq(questions.status, 'approved')
     ];
 
-    // Filter by sections if provided
-    if (sectionIds && sectionIds.length > 0) {
+    // Filter by topics if provided (takes precedence over sections)
+    if (topicIds && topicIds.length > 0) {
+      filters.push(inArray(questions.topicId, topicIds));
+    } else if (sectionIds && sectionIds.length > 0) {
+      // Filter by sections if no topics specified
       filters.push(inArray(questions.sectionId, sectionIds));
     }
 
@@ -38,7 +41,7 @@ export async function POST(req: NextRequest) {
       filters.push(eq(questions.difficultyLevel, difficulty));
     }
 
-    console.log('🔍 Fetching questions with filters:', { sectionIds, difficulty, questionCount });
+    console.log('🔍 Fetching questions with filters:', { sectionIds, topicIds, difficulty, questionCount });
 
     // Fetch random questions
     const availableQuestions = await db
@@ -65,7 +68,7 @@ export async function POST(req: NextRequest) {
     const [practiceTest] = await db
       .insert(tests)
       .values({
-        title: `${difficulty ? difficulty.charAt(0).toUpperCase() + difficulty.slice(1) : 'Mixed'} Practice Quiz`,
+        title: customTitle || `${difficulty ? difficulty.charAt(0).toUpperCase() + difficulty.slice(1) : 'Mixed'} Practice Quiz`,
         description: difficulty || 'mixed',
         testType: 'practice',
         totalQuestions: availableQuestions.length,

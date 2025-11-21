@@ -6,6 +6,7 @@ import { Calendar, Clock, Target, ArrowRight, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
+import { QuickQuizSheet } from './quick-quiz-sheet';
 
 interface UpcomingPractice {
   id: string;
@@ -18,9 +19,10 @@ interface UpcomingPractice {
 
 interface SpacedRepetitionQueueProps {
   upcomingPractice: UpcomingPractice[];
+  userId: string;
 }
 
-export function SpacedRepetitionQueue({ upcomingPractice }: SpacedRepetitionQueueProps) {
+export function SpacedRepetitionQueue({ upcomingPractice, userId }: SpacedRepetitionQueueProps) {
   const getDifficultyColor = (difficulty: string | null) => {
     switch (difficulty) {
       case 'easy':
@@ -84,15 +86,16 @@ export function SpacedRepetitionQueue({ upcomingPractice }: SpacedRepetitionQueu
             <p className="text-sm text-muted-foreground mb-6 max-w-sm">
               Schedule practice sessions to reinforce your learning with spaced repetition.
             </p>
-            <Button
-              asChild
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              <Link href="/dashboard/practice/generate">
-                <Calendar className="mr-2 h-4 w-4" />
-                Schedule Practice
-              </Link>
-            </Button>
+            <QuickQuizSheet
+              userId={userId}
+              defaultTab="schedule"
+              triggerButton={
+                <Button className="bg-orange-500 hover:bg-orange-600 text-white">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Schedule Practice
+                </Button>
+              }
+            />
           </div>
         ) : (
           // Practice Queue List

@@ -54,7 +54,7 @@ export async function DELETE(
       .where(eq(testQuestions.testId, testId));
 
     const totalQuestions = allTestQuestions.length;
-    const totalMarks = allTestQuestions.reduce((sum, q) => sum + q.marks, 0);
+    const totalMarks = (allTestQuestions || []).reduce((sum, q) => sum + (q.marks || 0), 0);
 
     await db
       .update(tests)

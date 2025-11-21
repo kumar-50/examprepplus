@@ -139,17 +139,6 @@ export function WeakTopicsSection({ weakTopics, userId }: WeakTopicsSectionProps
                 </div>
               );
             })}
-            
-            <Button 
-              variant="outline" 
-              className="w-full mt-2 border-orange-500/20 text-orange-500 hover:bg-orange-500/10"
-              asChild
-            >
-              <Link href="/dashboard/practice/generate">
-                <Brain className="mr-2 h-4 w-4" />
-                Generate Custom Quiz
-              </Link>
-            </Button>
           </div>
         )}
       </CardContent>

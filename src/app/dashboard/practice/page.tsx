@@ -3,39 +3,52 @@ import { redirect } from 'next/navigation';
 import { db } from '@/db';
 import { weakTopics, revisionSchedule, userTestAttempts, tests } from '@/db/schema';
 import { eq, desc, and, gte } from 'drizzle-orm';
-import { WeakTopicsSection } from '@/components/practice/weak-topics-section';
-import { SpacedRepetitionQueue } from '@/components/practice/spaced-repetition-queue';
-import { RevisionHistory } from '@/components/practice/revision-history';
-import { RevisionCalendar } from '@/components/practice/revision-calendar';
+import { PracticeTabs } from '@/components/practice/practice-tabs';
+import { QuickQuizSheet } from '@/components/practice/quick-quiz-sheet';
 
 export default async function PracticePage() {
   let user;
   try {
     user = await requireAuth();
+    console.log('✅ Practice page: User authenticated', user.id);
   } catch (error) {
     redirect('/login?redirect=/dashboard/practice');
   }
 
-  // Fetch weak topics for the user
-  const userWeakTopics = await db
-    .select({
-      id: weakTopics.id,
-      topicId: weakTopics.sectionId,
-      topicName: weakTopics.sectionId, // We'll need to join with sections table later
-      accuracyPercentage: weakTopics.accuracyPercentage,
-      weaknessLevel: weakTopics.weaknessLevel,
-      totalAttempts: weakTopics.totalAttempts,
-      correctAttempts: weakTopics.correctAttempts,
-      nextReviewDate: weakTopics.nextReviewDate,
-    })
-    .from(weakTopics)
-    .where(eq(weakTopics.userId, user.id))
-    .orderBy(desc(weakTopics.accuracyPercentage))
-    .limit(5);
+  try {
+    console.log('📊 Fetching weak topics...');
+    // Fetch weak topics for the user
+    const userWeakTopics = await db
+      .select({
+        id: weakTopics.id,
+        topicId: weakTopics.sectionId,
+        topicName: weakTopics.sectionId, // We'll need to join with sections table later
+        accuracyPercentage: weakTopics.accuracyPercentage,
+        weaknessLevel: weakTopics.weaknessLevel,
+        totalAttempts: weakTopics.totalAttempts,
+        correctAttempts: weakTopics.correctAttempts,
+        nextReviewDate: weakTopics.nextReviewDate,
+      })
+      .from(weakTopics)
+      .where(eq(weakTopics.userId, user.id))
+      .orderBy(desc(weakTopics.accuracyPercentage))
+      .limit(5)
+      .then(results => {
+        console.log('📊 Weak topics raw results:', results.length);
+        return results.map(item => ({
+          ...item,
+          accuracyPercentage: item.accuracyPercentage ?? 0,
+          totalAttempts: item.totalAttempts ?? 0,
+          correctAttempts: item.correctAttempts ?? 0,
+        }));
+      });
+    
+    console.log('✅ Weak topics fetched:', userWeakTopics.length);
 
-  // Fetch upcoming practice quizzes (scheduled attempts)
-  const now = new Date();
-  const upcomingPractice = await db
+    console.log('📅 Fetching upcoming practice...');
+    // Fetch upcoming practice quizzes (scheduled attempts)
+    const now = new Date();
+    const upcomingPractice = await db
     .select({
       id: revisionSchedule.id,
       scheduledDate: revisionSchedule.scheduledDate,
@@ -52,10 +65,17 @@ export default async function PracticePage() {
       )
     )
     .orderBy(revisionSchedule.scheduledDate)
-    .limit(5);
+    .limit(5)
+    .then(results => results.map(item => ({
+      ...item,
+      questionCount: item.questionCount ?? 10,
+    })));
+    
+    console.log('✅ Upcoming practice fetched:', upcomingPractice.length);
 
-  // Fetch revision history (completed practice attempts)
-  const revisionHistoryData = await db
+    console.log('📜 Fetching revision history...');
+    // Fetch revision history (completed practice attempts)
+    const revisionHistoryData = await db
     .select({
       id: userTestAttempts.id,
       title: tests.title,
@@ -79,12 +99,15 @@ export default async function PracticePage() {
       ...item,
       correctAnswers: item.correctAnswers ?? 0
     })));
+    
+    console.log('✅ Revision history fetched:', revisionHistoryData.length);
 
-  // Fetch calendar data (all scheduled sessions for the month)
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  
-  const calendarSchedule = await db
+    console.log('📅 Fetching calendar schedule...');
+    // Fetch calendar data (all scheduled sessions for the month)
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    
+    const calendarSchedule = await db
     .select({
       id: revisionSchedule.id,
       scheduledDate: revisionSchedule.scheduledDate,
@@ -97,37 +120,35 @@ export default async function PracticePage() {
         gte(revisionSchedule.scheduledDate, startOfMonth)
       )
     );
+    
+    console.log('✅ Calendar schedule fetched:', calendarSchedule.length);
+    console.log('🎉 All data fetched successfully, rendering page...');
 
-  return (
-    <div className="flex-1 space-y-4 sm:space-y-6 p-2 sm:p-4">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Practice Mode</h1>
-        <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-          Master your weak topics through AI-powered spaced repetition
-        </p>
-      </div>
+    return (
+      <div className="flex-1 space-y-4 sm:space-y-6 p-2 sm:p-4">
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Practice Mode</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+            Master your weak topics through AI-powered spaced repetition
+          </p>
+        </div>
 
-      {/* Top Row - Weak Topics & Spaced Repetition */}
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[2fr_1fr]">
-        {/* Weak Topics Section */}
-        <WeakTopicsSection weakTopics={userWeakTopics} userId={user.id} />
-
-        {/* Spaced Repetition Queue */}
-        <SpacedRepetitionQueue upcomingPractice={upcomingPractice} />
-      </div>
-
-      {/* Bottom Row - Revision History & Calendar */}
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[2fr_1fr]">
-        {/* Revision History Table */}
-        <RevisionHistory revisionHistory={revisionHistoryData} />
-
-        {/* Revision Calendar */}
-        <RevisionCalendar 
+        {/* Tabbed Interface */}
+        <PracticeTabs 
+          weakTopics={userWeakTopics}
+          upcomingPractice={upcomingPractice}
+          revisionHistory={revisionHistoryData}
           userId={user.id}
-          scheduledDates={calendarSchedule}
         />
+
+        {/* Floating Quick Quiz Button */}
+        <QuickQuizSheet userId={user.id} />
       </div>
-    </div>
-  );
+    );
+  } catch (error) {
+    console.error('❌ Error in Practice Page:', error);
+    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack');
+    throw error;
+  }
 }

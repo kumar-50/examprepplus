@@ -66,7 +66,9 @@ function ChartContainer({
 }
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = Object.entries(config).filter(([, config]) => config.theme || config.color)
+  const colorConfig = Object.entries(config || {}).filter(([, itemConfig]) => {
+    return itemConfig && (itemConfig.theme || itemConfig.color)
+  })
 
   if (!colorConfig.length) {
     return null
@@ -81,9 +83,11 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
+    if (!itemConfig) return null
     const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color
     return color ? `  --color-${key}: ${color};` : null
   })
+  .filter(Boolean)
   .join('\n')}
 }
 `
