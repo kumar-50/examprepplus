@@ -19,6 +19,7 @@ const updateQuestionSchema = z.object({
   hasEquation: z.boolean().optional(),
   imageUrl: z.string().url().optional().nullable(),
   isActive: z.boolean().optional(),
+  status: z.enum(['pending', 'approved', 'rejected']).optional(),
 })
 
 // GET /api/admin/questions/[id] - Get a single question
@@ -59,27 +60,44 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin()
+    const { user, profile } = await requireAdmin()
     const { id } = await params
 
     const body = await request.json()
     const validated = updateQuestionSchema.parse(body)
 
-    const [updatedQuestion] = await db
-      .update(questions)
-      .set({
-        ...validated,
-        updatedAt: new Date(),
-      })
+    // Get current question to check if status is changing
+    const [currentQuestion] = await db
+      .select()
+      .from(questions)
       .where(eq(questions.id, id))
-      .returning()
+      .limit(1)
 
-    if (!updatedQuestion) {
+    if (!currentQuestion) {
       return NextResponse.json(
         { error: 'Question not found' },
         { status: 404 }
       )
     }
+
+    // Prepare update data
+    const updateData: any = {
+      ...validated,
+      updatedAt: new Date(),
+    }
+
+    // If status is being changed, update verification fields
+    if (validated.status && validated.status !== currentQuestion.status) {
+      updateData.verifiedBy = user.id
+      updateData.verifiedAt = new Date()
+      updateData.isVerified = validated.status === 'approved'
+    }
+
+    const [updatedQuestion] = await db
+      .update(questions)
+      .set(updateData)
+      .where(eq(questions.id, id))
+      .returning()
 
     return NextResponse.json({ question: updatedQuestion })
   } catch (error) {

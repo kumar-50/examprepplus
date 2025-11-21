@@ -260,6 +260,7 @@ export default function QuestionsPage() {
       hasEquation: false,
       imageUrl: '',
       isActive: true,
+      status: 'pending',
     });
     setIsSheetOpen(true);
   };
@@ -711,6 +712,12 @@ export default function QuestionsPage() {
               {editingQuestion && (
                 <div className="space-y-3 pt-2 border-t">
                   <Label>Approval Status</Label>
+                  {editingQuestion.verifiedBy && editingQuestion.verifiedAt && (
+                    <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                      <p>Previously verified by: {editingQuestion.verifierName || 'Unknown'}</p>
+                      <p>At: {new Date(editingQuestion.verifiedAt).toLocaleString()}</p>
+                    </div>
+                  )}
                   <div className="grid grid-cols-3 gap-2">
                     <Button
                       type="button"
@@ -740,6 +747,12 @@ export default function QuestionsPage() {
                       Reject
                     </Button>
                   </div>
+                  {formData.status !== editingQuestion.status && (
+                    <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded border border-blue-200">
+                      <p className="font-medium">⚠️ Status Change Detected</p>
+                      <p>Changing status will update verification tracking (verified by you, timestamp updated)</p>
+                    </div>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     Current status: {getStatusBadge(formData.status || 'pending')}
                   </p>
@@ -827,11 +840,30 @@ export default function QuestionsPage() {
                 <Badge className={getDifficultyColor(viewingQuestion.difficultyLevel)}>
                   {viewingQuestion.difficultyLevel}
                 </Badge>
-                {viewingQuestion.verifierName && (
-                  <Badge variant="outline">
-                    Verified by: {viewingQuestion.verifierName}
-                  </Badge>
+                {viewingQuestion.isActive ? (
+                  <Badge variant="outline" className="bg-green-500/10 text-green-500">Active</Badge>
+                ) : (
+                  <Badge variant="outline" className="bg-gray-500/10 text-gray-500">Inactive</Badge>
                 )}
+              </div>
+
+              {/* Verification Details */}
+              <div className="bg-muted/30 rounded-lg p-4 space-y-2">
+                <p className="text-sm font-semibold">Verification Details</p>
+                <div className="text-xs space-y-1">
+                  <p><span className="font-medium">Status:</span> {viewingQuestion.status}</p>
+                  <p><span className="font-medium">Verified:</span> {viewingQuestion.isVerified ? 'Yes' : 'No'}</p>
+                  {viewingQuestion.verifierName && (
+                    <p><span className="font-medium">Verified by:</span> {viewingQuestion.verifierName}</p>
+                  )}
+                  {viewingQuestion.verifiedAt && (
+                    <p><span className="font-medium">Verified at:</span> {new Date(viewingQuestion.verifiedAt).toLocaleString()}</p>
+                  )}
+                  {viewingQuestion.creatorName && (
+                    <p><span className="font-medium">Created by:</span> {viewingQuestion.creatorName}</p>
+                  )}
+                  <p><span className="font-medium">Created at:</span> {new Date(viewingQuestion.createdAt).toLocaleString()}</p>
+                </div>
               </div>
             </div>
           )}
