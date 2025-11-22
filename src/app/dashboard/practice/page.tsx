@@ -6,6 +6,10 @@ import { eq, desc, and, gte } from 'drizzle-orm';
 import { PracticeTabs } from '@/components/practice/practice-tabs';
 import { QuickQuizSheet } from '@/components/practice/quick-quiz-sheet';
 
+// Force dynamic rendering and disable caching
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function PracticePage() {
   let user;
   try {

@@ -18,6 +18,11 @@ import {
   Lightbulb
 } from 'lucide-react';
 import Link from 'next/link';
+import { BackToPracticeButton } from '@/components/practice/back-to-practice-button';
+
+// Force dynamic rendering and disable caching
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 interface PageProps {
   params: Promise<{
@@ -114,12 +119,7 @@ export default async function PracticeReviewPage({ params }: PageProps) {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
       {/* Header */}
       <div className="mb-6">
-        <Link href="/dashboard/practice">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Practice
-          </Button>
-        </Link>
+        <BackToPracticeButton />
       </div>
 
       {/* Results Summary */}
