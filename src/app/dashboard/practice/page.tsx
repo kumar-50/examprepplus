@@ -50,8 +50,17 @@ export default async function PracticePage() {
     console.log('✅ Weak topics fetched:', userWeakTopics.length);
 
     console.log('📅 Fetching upcoming practice...');
-    // Fetch upcoming practice quizzes (scheduled attempts)
+    console.log('📅 User ID:', user.id);
+    // Fetch upcoming practice quizzes (scheduled attempts - includes overdue ones not yet completed)
     const now = new Date();
+    
+    // First check if there are ANY records in the table
+    const allSchedules = await db.select().from(revisionSchedule).limit(5);
+    console.log('📅 Total schedules in DB (any user):', allSchedules.length);
+    if (allSchedules.length > 0) {
+      console.log('📅 Sample schedule:', allSchedules[0]);
+    }
+    
     const upcomingPractice = await db
     .select({
       id: revisionSchedule.id,
@@ -62,20 +71,16 @@ export default async function PracticePage() {
       attemptId: revisionSchedule.attemptId,
     })
     .from(revisionSchedule)
-    .where(
-      and(
-        eq(revisionSchedule.userId, user.id),
-        gte(revisionSchedule.scheduledDate, now)
-      )
-    )
+    .where(eq(revisionSchedule.userId, user.id))
     .orderBy(revisionSchedule.scheduledDate)
-    .limit(5)
+    .limit(10)
     .then(results => results.map(item => ({
       ...item,
       questionCount: item.questionCount ?? 10,
     })));
     
     console.log('✅ Upcoming practice fetched:', upcomingPractice.length);
+    console.log('📅 Upcoming practice data:', JSON.stringify(upcomingPractice, null, 2));
 
     console.log('📜 Fetching revision history...');
     // Fetch revision history (completed practice attempts)
