@@ -1,7 +1,7 @@
 import { requireAuth } from '@/lib/auth/server';
 import { redirect } from 'next/navigation';
 import { db } from '@/db';
-import { weakTopics, revisionSchedule, userTestAttempts, tests } from '@/db/schema';
+import { weakTopics, revisionSchedule, userTestAttempts, tests, sections } from '@/db/schema';
 import { eq, desc, and, gte } from 'drizzle-orm';
 import { PracticeTabs } from '@/components/practice/practice-tabs';
 import { QuickQuizSheet } from '@/components/practice/quick-quiz-sheet';
@@ -21,12 +21,12 @@ export default async function PracticePage() {
 
   try {
     console.log('📊 Fetching weak topics...');
-    // Fetch weak topics for the user
+    // Fetch weak topics for the user with section names
     const userWeakTopics = await db
       .select({
         id: weakTopics.id,
-        topicId: weakTopics.sectionId,
-        topicName: weakTopics.sectionId, // We'll need to join with sections table later
+        sectionId: weakTopics.sectionId,
+        sectionName: sections.name,
         accuracyPercentage: weakTopics.accuracyPercentage,
         weaknessLevel: weakTopics.weaknessLevel,
         totalAttempts: weakTopics.totalAttempts,
@@ -34,9 +34,10 @@ export default async function PracticePage() {
         nextReviewDate: weakTopics.nextReviewDate,
       })
       .from(weakTopics)
+      .innerJoin(sections, eq(weakTopics.sectionId, sections.id))
       .where(eq(weakTopics.userId, user.id))
-      .orderBy(desc(weakTopics.accuracyPercentage))
-      .limit(5)
+      .orderBy(weakTopics.accuracyPercentage) // Lowest accuracy first (most critical)
+      .limit(10)
       .then(results => {
         console.log('📊 Weak topics raw results:', results.length);
         return results.map(item => ({

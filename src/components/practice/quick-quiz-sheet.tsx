@@ -62,25 +62,48 @@ interface QuickQuizSheetProps {
   userId: string;
   defaultTab?: 'immediate' | 'schedule';
   triggerButton?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  preSelectedSections?: string[];
+  lockSelection?: boolean;
 }
 
-export function QuickQuizSheet({ userId, defaultTab = 'immediate', triggerButton }: QuickQuizSheetProps) {
+export function QuickQuizSheet({ 
+  userId, 
+  defaultTab = 'immediate', 
+  triggerButton,
+  open: controlledOpen,
+  onOpenChange,
+  preSelectedSections = [],
+  lockSelection = false,
+}: QuickQuizSheetProps) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fetchingData, setFetchingData] = useState(false);
+  
+  // Use controlled or uncontrolled state
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
   
   const [practiceType, setPracticeType] = useState<'immediate' | 'schedule'>(defaultTab);
   const [scheduleDate, setScheduleDate] = useState<Date>();
   const [scheduleTime, setScheduleTime] = useState('');
   const [quizName, setQuizName] = useState('');
   
-  const [mode, setMode] = useState<'section' | 'topic'>('section');
+  const [mode, setMode] = useState<'section' | 'topic'>(lockSelection ? 'section' : 'section');
   const [questionCount, setQuestionCount] = useState<10 | 20 | 30>(10);
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [selectedItems, setSelectedItems] = useState<string[]>(preSelectedSections);
   
   const [sections, setSections] = useState<Section[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
+
+  // Update selectedItems when preSelectedSections changes
+  useEffect(() => {
+    if (preSelectedSections.length > 0) {
+      setSelectedItems(preSelectedSections);
+    }
+  }, [preSelectedSections]);
 
   // Fetch sections and topics with question counts
   useEffect(() => {
@@ -272,18 +295,20 @@ export function QuickQuizSheet({ userId, defaultTab = 'immediate', triggerButton
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto px-6 space-y-6">
-            {/* Practice Type - Immediate or Schedule */}
-            <div className="space-y-3">
-              <Label>Practice Type</Label>
-              <Tabs value={practiceType} onValueChange={(value) => {
-                setPracticeType(value as 'immediate' | 'schedule');
-              }}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="immediate">Start Now</TabsTrigger>
-                  <TabsTrigger value="schedule">Schedule</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
+            {/* Practice Type - Immediate or Schedule - Hidden when locked */}
+            {!lockSelection && (
+              <div className="space-y-3">
+                <Label>Practice Type</Label>
+                <Tabs value={practiceType} onValueChange={(value) => {
+                  setPracticeType(value as 'immediate' | 'schedule');
+                }}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="immediate">Start Now</TabsTrigger>
+                    <TabsTrigger value="schedule">Schedule</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+            )}
 
             {/* Quiz Name */}
             <div className="space-y-3">
@@ -355,19 +380,40 @@ export function QuickQuizSheet({ userId, defaultTab = 'immediate', triggerButton
               </div>
             )}
 
-            {/* Mode Selection - Tabs */}
-            <div className="space-y-3">
-              <Label>Select Mode</Label>
-              <Tabs value={mode} onValueChange={(value) => {
-                setMode(value as 'section' | 'topic');
-                setSelectedItems([]);
-              }}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="section">Section-based</TabsTrigger>
-                  <TabsTrigger value="topic">Topic-based</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
+            {/* Mode Selection - Tabs - Hidden when locked */}
+            {!lockSelection && (
+              <div className="space-y-3">
+                <Label>Select Mode</Label>
+                <Tabs value={mode} onValueChange={(value) => {
+                  setMode(value as 'section' | 'topic');
+                  setSelectedItems([]);
+                }}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="section">Section-based</TabsTrigger>
+                    <TabsTrigger value="topic">Topic-based</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+            )}
+
+            {/* Locked Section Display */}
+            {lockSelection && preSelectedSections.length > 0 && (
+              <div className="space-y-3">
+                <Label>Practice Section</Label>
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-lg border">
+                  <div className="flex h-8 w-8 items-center justify-center rounded bg-orange-500/10">
+                    <Brain className="h-4 w-4 text-orange-500" />
+                  </div>
+                  <span className="flex-1 font-medium">
+                    {sections.find(s => s.id === preSelectedSections[0])?.name || 'Loading...'}
+                  </span>
+                  <Badge variant="secondary" className="text-xs">Locked</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  This section is pre-selected for targeted practice
+                </p>
+              </div>
+            )}
 
             {/* Question Count */}
             <div className="space-y-3">
@@ -384,25 +430,26 @@ export function QuickQuizSheet({ userId, defaultTab = 'immediate', triggerButton
               </Tabs>
             </div>
 
-            {/* Selection - Multi-select with search */}
-            <div className="space-y-3">
-              <Label>Select {mode === 'section' ? 'Sections' : 'Topics'}</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    className={cn(
-                      "w-full justify-between",
-                      selectedItems.length === 0 && "text-muted-foreground"
-                    )}
-                  >
-                    {selectedItems.length > 0
-                      ? `${selectedItems.length} selected`
-                      : `Select ${mode === 'section' ? 'sections' : 'topics'}...`}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
+            {/* Selection - Multi-select with search - Hidden when locked */}
+            {!lockSelection && (
+              <div className="space-y-3">
+                <Label>Select {mode === 'section' ? 'Sections' : 'Topics'}</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className={cn(
+                        "w-full justify-between",
+                        selectedItems.length === 0 && "text-muted-foreground"
+                      )}
+                    >
+                      {selectedItems.length > 0
+                        ? `${selectedItems.length} selected`
+                        : `Select ${mode === 'section' ? 'sections' : 'topics'}...`}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
                 <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
                   <Command>
                     <CommandInput placeholder={`Search ${mode === 'section' ? 'sections' : 'topics'}...`} />
@@ -472,6 +519,7 @@ export function QuickQuizSheet({ userId, defaultTab = 'immediate', triggerButton
                 </div>
               )}
             </div>
+            )}
           </div>
         )}
 

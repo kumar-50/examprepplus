@@ -8,8 +8,8 @@ import { Brain, History, Clock } from 'lucide-react';
 
 interface WeakTopic {
   id: string;
-  topicId: string;
-  topicName: string;
+  sectionId: string;
+  sectionName: string;
   accuracyPercentage: number;
   weaknessLevel: string | null;
   totalAttempts: number;
