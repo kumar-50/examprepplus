@@ -1,0 +1,98 @@
+/**
+ * Analytics Print Styles
+ * Optimized styles for PDF export
+ */
+
+@media print {
+  /* Hide navigation and non-essential elements */
+  nav,
+  header,
+  footer,
+  [data-export-button],
+  .no-print {
+    display: none !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 1.5cm;
+  }
+
+  /* Root container */
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Ensure proper page breaks */
+  .page-break {
+    page-break-after: always;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+  }
+
+  /* Cards and sections */
+  [class*="Card"] {
+    page-break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+
+  /* Charts - ensure they fit on page */
+  [class*="recharts-wrapper"] {
+    max-height: 400px;
+  }
+
+  /* Grid layouts */
+  [class*="grid"] {
+    display: grid !important;
+  }
+
+  /* Text colors for print */
+  [class*="text-muted-foreground"] {
+    color: #6b7280 !important;
+  }
+
+  /* Ensure backgrounds print */
+  [class*="bg-"] {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Header styling */
+  h1 {
+    font-size: 24pt;
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    font-size: 18pt;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  h3 {
+    font-size: 14pt;
+  }
+
+  /* Add page header */
+  body::before {
+    content: "Analytics Dashboard Report - ExamPrepPlus";
+    display: block;
+    text-align: center;
+    font-weight: bold;
+    font-size: 16pt;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #000;
+  }
+
+  /* Add page footer with page numbers */
+  @page {
+    @bottom-right {
+      content: "Page " counter(page) " of " counter(pages);
+    }
+  }
+}

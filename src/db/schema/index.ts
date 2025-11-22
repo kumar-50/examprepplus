@@ -13,3 +13,4 @@ export * from './coupons';
 export * from './coupon-usage';
 // Practice mode uses existing tables + these helpers
 export { weakTopics, revisionSchedule } from './practice-sessions';
+export { practiceStreaks, practiceCalendar } from './practice-streaks';

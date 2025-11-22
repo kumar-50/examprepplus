@@ -8,7 +8,8 @@ import {
   Tag,
   BookOpen,
   FolderTree,
-  List
+  List,
+  TrendingUp
 } from 'lucide-react'
 
 export interface NavItem {
@@ -88,6 +89,11 @@ export const userNavItems: NavItem[] = [
     icon: 'FileText',
   },
   {
+    title: 'Analytics',
+    href: '/dashboard/analytics',
+    icon: 'TrendingUp',
+  },
+  {
     title: 'Progress',
     href: '/dashboard/progress',
     icon: 'BarChart3',
@@ -116,4 +122,5 @@ export const iconMap = {
   BookOpen,
   FolderTree,
   List,
+  TrendingUp,
 } as const

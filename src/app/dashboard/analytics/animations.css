@@ -1,0 +1,164 @@
+/**
+ * Analytics Component Animations
+ * CSS animations for analytics dashboard
+ */
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Slide up animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scale in animation */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Number counter animation */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Chart bar grow animation */
+@keyframes barGrow {
+  from {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+  to {
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+}
+
+/* Apply animations to analytics components */
+[data-analytics-card] {
+  animation: slideUp 0.4s ease-out;
+  animation-fill-mode: both;
+}
+
+[data-analytics-card]:nth-child(1) { animation-delay: 0.05s; }
+[data-analytics-card]:nth-child(2) { animation-delay: 0.1s; }
+[data-analytics-card]:nth-child(3) { animation-delay: 0.15s; }
+[data-analytics-card]:nth-child(4) { animation-delay: 0.2s; }
+[data-analytics-card]:nth-child(5) { animation-delay: 0.25s; }
+[data-analytics-card]:nth-child(6) { animation-delay: 0.3s; }
+
+[data-analytics-chart] {
+  animation: fadeIn 0.5s ease-out;
+}
+
+[data-analytics-insight] {
+  animation: slideUp 0.4s ease-out;
+  animation-fill-mode: both;
+}
+
+[data-analytics-insight]:nth-child(1) { animation-delay: 0.1s; }
+[data-analytics-insight]:nth-child(2) { animation-delay: 0.2s; }
+[data-analytics-insight]:nth-child(3) { animation-delay: 0.3s; }
+[data-analytics-insight]:nth-child(4) { animation-delay: 0.4s; }
+
+/* Hover effects */
+[data-analytics-card]:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease-out;
+}
+
+/* Loading animation for skeletons */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--muted-foreground) / 0.1) 50%,
+    hsl(var(--muted)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Smooth transitions for all interactive elements */
+[data-analytics] * {
+  transition-property: color, background-color, border-color, transform;
+  transition-duration: 0.2s;
+  transition-timing-function: ease-out;
+}
+
+/* Chart animations */
+.recharts-bar-rectangle {
+  animation: barGrow 0.6s ease-out;
+}
+
+.recharts-line-curve {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: lineDraw 1.5s ease-out forwards;
+}
+
+@keyframes lineDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Heatmap cell animations */
+[data-heatmap-cell] {
+  transition: all 0.2s ease-out;
+}
+
+[data-heatmap-cell]:hover {
+  transform: scale(1.2);
+  z-index: 10;
+}
+
+/* Pulse animation for high priority items */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

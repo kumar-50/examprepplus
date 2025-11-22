@@ -5,6 +5,8 @@ import { weakTopics, revisionSchedule, userTestAttempts, tests, sections } from 
 import { eq, desc, and, gte } from 'drizzle-orm';
 import { PracticeTabs } from '@/components/practice/practice-tabs';
 import { QuickQuizSheet } from '@/components/practice/quick-quiz-sheet';
+import { getStreakStats, getCalendarData } from '@/lib/practice-streak';
+import { subDays } from 'date-fns';
 
 // Force dynamic rendering and disable caching
 export const dynamic = 'force-dynamic';
@@ -32,6 +34,7 @@ export default async function PracticePage() {
         totalAttempts: weakTopics.totalAttempts,
         correctAttempts: weakTopics.correctAttempts,
         nextReviewDate: weakTopics.nextReviewDate,
+        lastPracticedAt: weakTopics.lastPracticedAt,
       })
       .from(weakTopics)
       .innerJoin(sections, eq(weakTopics.sectionId, sections.id))
@@ -132,6 +135,16 @@ export default async function PracticePage() {
     );
     
     console.log('✅ Calendar schedule fetched:', calendarSchedule.length);
+
+    // Fetch streak data
+    console.log('🔥 Fetching streak data...');
+    const streakStats = await getStreakStats(user.id);
+    console.log('✅ Streak data fetched:', streakStats);
+
+    // Fetch calendar practice data (last 30 days)
+    const calendarData = await getCalendarData(user.id, subDays(new Date(), 30), new Date());
+    console.log('✅ Calendar data fetched:', calendarData.length, 'days');
+
     console.log('🎉 All data fetched successfully, rendering page...');
 
     return (
@@ -150,6 +163,8 @@ export default async function PracticePage() {
           upcomingPractice={upcomingPractice}
           revisionHistory={revisionHistoryData}
           userId={user.id}
+          streakStats={streakStats}
+          calendarData={calendarData}
         />
 
         {/* Floating Quick Quiz Button */}

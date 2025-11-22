@@ -3,9 +3,11 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Target, TrendingDown } from 'lucide-react';
+import { Target, TrendingDown, Clock } from 'lucide-react';
 import { useState } from 'react';
 import { QuickQuizSheet } from './quick-quiz-sheet';
+import { isReviewDue, getDaysUntilReview, getIntervalDescription } from '@/lib/spaced-repetition';
+import { formatDistanceToNow } from 'date-fns';
 
 interface WeakTopicCardProps {
   id: string;
@@ -16,6 +18,8 @@ interface WeakTopicCardProps {
   totalAttempts: number;
   correctAttempts: number;
   userId: string;
+  nextReviewDate?: Date | null;
+  lastPracticedAt?: Date | null;
 }
 
 export function WeakTopicCard({
@@ -27,8 +31,14 @@ export function WeakTopicCard({
   totalAttempts,
   correctAttempts,
   userId,
+  nextReviewDate,
+  lastPracticedAt,
 }: WeakTopicCardProps) {
   const [isQuizSheetOpen, setIsQuizSheetOpen] = useState(false);
+
+  // Check if review is due
+  const reviewDue = nextReviewDate ? isReviewDue(nextReviewDate) : true;
+  const daysUntilReview = nextReviewDate ? getDaysUntilReview(nextReviewDate) : 0;
 
   // Determine severity level and colors
   const getSeverityConfig = () => {
@@ -137,13 +147,36 @@ export function WeakTopicCard({
             </div>
           </div>
 
+          {/* Review Schedule Info */}
+          {nextReviewDate && (
+            <div className="mb-4 p-2 rounded-lg bg-muted/50 flex items-center gap-2 text-xs">
+              <Clock className="h-3 w-3" />
+              {reviewDue ? (
+                <span className="text-orange-600 font-medium">Review due now</span>
+              ) : (
+                <span className="text-muted-foreground">
+                  Next review: {getIntervalDescription(daysUntilReview)}
+                </span>
+              )}
+              {lastPracticedAt && (
+                <span className="text-muted-foreground">
+                  • Last practiced {formatDistanceToNow(new Date(lastPracticedAt), { addSuffix: true })}
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Practice Now Button */}
           <Button
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+            className={`w-full ${
+              reviewDue
+                ? 'bg-orange-500 hover:bg-orange-600'
+                : 'bg-orange-500/80 hover:bg-orange-500'
+            } text-white`}
             onClick={() => setIsQuizSheetOpen(true)}
           >
             <Target className="mr-2 h-4 w-4" />
-            Practice Now
+            {reviewDue ? 'Review Now' : 'Practice Now'}
           </Button>
         </CardContent>
       </Card>

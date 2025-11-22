@@ -1,6 +1,7 @@
 import { db } from '@/db';
 import { userAnswers, questions, topics, weakTopics, userTestAttempts, sections } from '@/db/schema';
 import { eq, sql, and } from 'drizzle-orm';
+import { calculateNextReviewDate, determineWeaknessLevel } from '@/lib/spaced-repetition';
 
 interface TopicPerformance {
   topicId: string;
@@ -55,7 +56,29 @@ export async function updateWeakTopicsAfterTest(userId: string, attemptId: strin
     const accuracy = (performance.correct / performance.total) * 100;
     
     if (accuracy < 60) {
-      const weaknessLevel = accuracy < 40 ? 'critical' : 'moderate';
+      // Get current review count for this section
+      const existingRecord = await db
+        .select({
+          reviewCount: weakTopics.reviewCount,
+        })
+        .from(weakTopics)
+        .where(and(
+          eq(weakTopics.userId, userId),
+          eq(weakTopics.sectionId, sectionId)
+        ))
+        .limit(1);
+      
+      const currentReviewCount = existingRecord[0]?.reviewCount || 0;
+      
+      // Calculate next review date using spaced repetition
+      const nextReview = calculateNextReviewDate({
+        reviewCount: currentReviewCount,
+        lastAccuracy: accuracy,
+        lastReviewDate: new Date(),
+      });
+      
+      // Determine weakness level
+      const weaknessLevel = determineWeaknessLevel(accuracy, currentReviewCount);
       
       await db
         .insert(weakTopics)
@@ -67,6 +90,8 @@ export async function updateWeakTopicsAfterTest(userId: string, attemptId: strin
           accuracyPercentage: Math.round(accuracy),
           weaknessLevel,
           lastPracticedAt: new Date(),
+          nextReviewDate: nextReview.nextReviewDate,
+          reviewCount: nextReview.reviewCount,
         })
         .onConflictDoUpdate({
           target: [weakTopics.userId, weakTopics.sectionId],
@@ -76,6 +101,8 @@ export async function updateWeakTopicsAfterTest(userId: string, attemptId: strin
             accuracyPercentage: sql`ROUND((${weakTopics.correctAttempts} + ${performance.correct})::numeric / (${weakTopics.totalAttempts} + ${performance.total}) * 100)`,
             weaknessLevel,
             lastPracticedAt: new Date(),
+            nextReviewDate: nextReview.nextReviewDate,
+            reviewCount: nextReview.reviewCount,
             updatedAt: new Date(),
           },
         });
@@ -153,7 +180,12 @@ export async function analyzeUserWeakTopics(userId: string): Promise<void> {
 
   // Step 4: Upsert weak topics into database
   for (const topic of identifiedWeakTopics) {
-    const nextReviewDate = calculateNextReviewDate(topic.weaknessLevel!);
+    // Calculate initial review date using SM-2 algorithm
+    const reviewResult = calculateNextReviewDate({
+      reviewCount: 0,
+      lastAccuracy: topic.accuracyPercentage,
+      lastReviewDate: new Date(),
+    });
 
     await db
       .insert(weakTopics)
@@ -164,7 +196,7 @@ export async function analyzeUserWeakTopics(userId: string): Promise<void> {
         correctAttempts: topic.correctAttempts,
         accuracyPercentage: topic.accuracyPercentage,
         weaknessLevel: topic.weaknessLevel,
-        nextReviewDate,
+        nextReviewDate: reviewResult.nextReviewDate,
         lastPracticedAt: null,
         reviewCount: 0,
       })
@@ -175,7 +207,7 @@ export async function analyzeUserWeakTopics(userId: string): Promise<void> {
           correctAttempts: topic.correctAttempts,
           accuracyPercentage: topic.accuracyPercentage,
           weaknessLevel: topic.weaknessLevel,
-          nextReviewDate,
+          nextReviewDate: reviewResult.nextReviewDate,
           updatedAt: new Date(),
         },
       });
@@ -199,25 +231,8 @@ export async function analyzeUserWeakTopics(userId: string): Promise<void> {
 }
 
 /**
- * Calculate the next review date based on weakness level
- * Uses spaced repetition algorithm
- */
-function calculateNextReviewDate(weaknessLevel: 'critical' | 'moderate' | 'improving'): Date {
-  const now = new Date();
-  const daysToAdd = {
-    critical: 1,    // Review daily for critical topics
-    moderate: 3,    // Review every 3 days for moderate
-    improving: 7,   // Review weekly for improving topics
-  };
-
-  const days = daysToAdd[weaknessLevel];
-  now.setDate(now.getDate() + days);
-  return now;
-}
-
-/**
  * Update weak topic after practice session
- * Adjusts the review interval based on performance
+ * Uses spaced repetition algorithm to optimize review scheduling
  */
 export async function updateWeakTopicAfterPractice(
   userId: string,
@@ -242,28 +257,15 @@ export async function updateWeakTopicAfterPractice(
   const newCorrectAttempts = existingWeakTopic.correctAttempts + (wasCorrect ? 1 : 0);
   const newAccuracy = Math.round((newCorrectAttempts / newTotalAttempts) * 100);
 
-  // Recalculate weakness level
-  let newWeaknessLevel: 'critical' | 'moderate' | 'improving' | null = null;
-  if (newAccuracy < 40) {
-    newWeaknessLevel = 'critical';
-  } else if (newAccuracy < 60) {
-    newWeaknessLevel = 'moderate';
-  } else if (newAccuracy < 75) {
-    newWeaknessLevel = 'improving';
-  }
+  // Calculate next review using SM-2 algorithm
+  const reviewResult = calculateNextReviewDate({
+    reviewCount: existingWeakTopic.reviewCount,
+    lastAccuracy: newAccuracy,
+    lastReviewDate: existingWeakTopic.lastPracticedAt || new Date(),
+  });
 
-  // Calculate next review with improvement bonus
-  let nextReviewDate: Date | null = null;
-  if (newWeaknessLevel) {
-    const baseInterval = calculateNextReviewDate(newWeaknessLevel);
-    
-    // If user got it correct, increase interval slightly (reward good performance)
-    if (wasCorrect && existingWeakTopic.reviewCount > 2) {
-      baseInterval.setDate(baseInterval.getDate() + 1);
-    }
-    
-    nextReviewDate = baseInterval;
-  }
+  // Determine weakness level based on accuracy
+  const newWeaknessLevel = determineWeaknessLevel(newAccuracy, reviewResult.reviewCount);
 
   // Update or delete the weak topic
   if (newWeaknessLevel === null && newAccuracy >= 75) {
@@ -277,7 +279,7 @@ export async function updateWeakTopicAfterPractice(
         )
       );
   } else {
-    // Update the weak topic
+    // Update the weak topic with SM-2 algorithm data
     await db
       .update(weakTopics)
       .set({
@@ -286,8 +288,8 @@ export async function updateWeakTopicAfterPractice(
         accuracyPercentage: newAccuracy,
         weaknessLevel: newWeaknessLevel,
         lastPracticedAt: new Date(),
-        nextReviewDate,
-        reviewCount: existingWeakTopic.reviewCount + 1,
+        nextReviewDate: reviewResult.nextReviewDate,
+        reviewCount: reviewResult.reviewCount,
         updatedAt: new Date(),
       })
       .where(

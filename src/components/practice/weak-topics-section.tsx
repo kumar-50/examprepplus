@@ -13,6 +13,7 @@ interface WeakTopic {
   totalAttempts: number;
   correctAttempts: number;
   nextReviewDate: Date | null;
+  lastPracticedAt: Date | null;
 }
 
 interface WeakTopicsSectionProps {
@@ -62,6 +63,8 @@ export function WeakTopicsSection({ weakTopics, userId }: WeakTopicsSectionProps
                 totalAttempts={topic.totalAttempts}
                 correctAttempts={topic.correctAttempts}
                 userId={userId}
+                nextReviewDate={topic.nextReviewDate}
+                lastPracticedAt={topic.lastPracticedAt}
               />
             ))}
           </div>
