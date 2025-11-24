@@ -92,7 +92,7 @@ interface SectionPattern {
 interface TestFormData {
   title: string;
   description: string;
-  testType: 'mock' | 'live' | 'sectional' | 'practice';
+  testType: 'mock-test' | 'sectional' | 'practice';
   duration: number;
   negativeMarking: boolean;
   negativeMarkingValue: number;
@@ -114,7 +114,7 @@ export default function TestBuilderPage() {
   const [formData, setFormData] = useState<TestFormData>({
     title: '',
     description: '',
-    testType: 'mock',
+    testType: 'mock-test',
     duration: 180,
     negativeMarking: false,
     negativeMarkingValue: 0,
@@ -371,7 +371,7 @@ export default function TestBuilderPage() {
       return;
     }
 
-    const isPatternBased = formData.testType === 'mock' || formData.testType === 'live';
+    const isPatternBased = formData.testType === 'mock-test';
 
     if (isPatternBased && sectionPatterns.length === 0) {
       toast({
@@ -423,7 +423,7 @@ export default function TestBuilderPage() {
   };
 
   const saveTest = async () => {
-    const isPatternBased = formData.testType === 'mock' || formData.testType === 'live';
+    const isPatternBased = formData.testType === 'mock-test';
 
     setSaving(true);
     try {
@@ -438,7 +438,6 @@ export default function TestBuilderPage() {
         ...formData,
         totalQuestions,
         totalMarks,
-        isPublished: false, // Always save as draft
         testPattern: isPatternBased ? Object.fromEntries(
           sectionPatterns.map(sp => [sp.sectionId, sp.questionCount])
         ) : null,
@@ -447,7 +446,7 @@ export default function TestBuilderPage() {
       let savedTestId = testId;
 
       if (isEditMode) {
-        // Update existing test
+        // Update existing test - preserve isPublished status unless explicitly changing
         const response = await fetch(`/api/admin/tests/${testId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -455,12 +454,39 @@ export default function TestBuilderPage() {
         });
 
         if (!response.ok) throw new Error('Failed to update test');
+
+        // For pattern-based tests in edit mode, regenerate questions if pattern changed
+        if (isPatternBased) {
+          // Delete existing questions and regenerate
+          await fetch(`/api/admin/tests/${testId}/questions`, {
+            method: 'DELETE',
+          });
+
+          const generateResponse = await fetch(`/api/admin/tests/${testId}/generate-questions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sectionPatterns: sectionPatterns.map(sp => ({
+                sectionId: sp.sectionId,
+                count: sp.questionCount,
+              })),
+            }),
+          });
+
+          if (!generateResponse.ok) {
+            const error = await generateResponse.json();
+            throw new Error(error.error || 'Failed to regenerate questions');
+          }
+        }
       } else {
-        // Create new test
+        // Create new test - save as draft
         const response = await fetch('/api/admin/tests', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(testData),
+          body: JSON.stringify({
+            ...testData,
+            isPublished: false,
+          }),
         });
 
         if (!response.ok) throw new Error('Failed to create test');
@@ -469,7 +495,7 @@ export default function TestBuilderPage() {
         savedTestId = data.test.id;
       }
 
-      // For pattern-based tests, generate random questions
+      // For pattern-based tests, generate random questions (only for new tests)
       if (savedTestId && isPatternBased && !isEditMode) {
         const generateResponse = await fetch(`/api/admin/tests/${savedTestId}/generate-questions`, {
           method: 'POST',
@@ -491,21 +517,25 @@ export default function TestBuilderPage() {
       // For manual tests, save selected questions
       if (savedTestId && !isPatternBased) {
         if (isEditMode) {
-          const response = await fetch(
-            `/api/admin/tests/${savedTestId}/questions/reorder`,
-            {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                questionOrders: selectedQuestions.map((q) => ({
-                  id: q.testQuestionId!,
-                  questionOrder: q.questionOrder,
-                })),
-              }),
-            }
-          );
+          // Delete all existing questions and re-add them with current selection
+          await fetch(`/api/admin/tests/${savedTestId}/questions`, {
+            method: 'DELETE',
+          });
 
-          if (!response.ok) throw new Error('Failed to reorder questions');
+          // Add current selected questions
+          const response = await fetch(`/api/admin/tests/${savedTestId}/questions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              questions: selectedQuestions.map((q) => ({
+                questionId: q.id,
+                marks: q.marks,
+                sectionId: q.sectionId,
+              })),
+            }),
+          });
+
+          if (!response.ok) throw new Error('Failed to update questions');
         } else {
           // Add questions to new test
           const response = await fetch(`/api/admin/tests/${savedTestId}/questions`, {
@@ -526,7 +556,7 @@ export default function TestBuilderPage() {
 
       toast({
         title: 'Success',
-        description: 'Test saved as draft successfully',
+        description: isEditMode ? 'Test updated successfully' : 'Test saved as draft successfully',
       });
 
       return savedTestId;
@@ -743,8 +773,7 @@ export default function TestBuilderPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="mock">Mock Test</SelectItem>
-                      <SelectItem value="live">Live Test</SelectItem>
+                      <SelectItem value="mock-test">Mock Test</SelectItem>
                       <SelectItem value="sectional">Sectional</SelectItem>
                       <SelectItem value="practice">Practice</SelectItem>
                     </SelectContent>
@@ -765,19 +794,7 @@ export default function TestBuilderPage() {
                 </div>
               </div>
 
-              {formData.testType === 'live' && (
-                <div>
-                  <Label htmlFor="scheduledAt">Scheduled Date & Time</Label>
-                  <Input
-                    id="scheduledAt"
-                    type="datetime-local"
-                    value={formData.scheduledAt}
-                    onChange={(e) =>
-                      setFormData({ ...formData, scheduledAt: e.target.value })
-                    }
-                  />
-                </div>
-              )}
+
 
               <div>
                 <Label htmlFor="instructions">Instructions</Label>
@@ -846,8 +863,8 @@ export default function TestBuilderPage() {
             </div>
           </Card>
 
-          {/* Section Pattern (for Mock/Live Tests) */}
-          {(formData.testType === 'mock' || formData.testType === 'live') && (
+          {/* Section Pattern (for Mock Test) */}
+          {formData.testType === 'mock-test' && (
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -1089,7 +1106,7 @@ export default function TestBuilderPage() {
             </Button>
             <Button
               onClick={handlePreview}
-              disabled={saving || !formData.title || (!isEditMode && (formData.testType === 'mock' || formData.testType === 'live' ? sectionPatterns.length === 0 : selectedQuestions.length === 0))}
+              disabled={saving || !formData.title || (!isEditMode && (formData.testType === 'mock-test' ? sectionPatterns.length === 0 : selectedQuestions.length === 0))}
               size="lg"
             >
               {isEditMode ? (

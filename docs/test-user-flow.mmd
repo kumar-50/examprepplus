@@ -1,0 +1,100 @@
+%%{init: {'theme':'dark'}}%%
+flowchart TD
+    Start(("User Opens<br/>ExamPrepPlus"))
+    
+    Start --> Browse["Browse Test Library"]
+    Browse --> SelectTest{"Select a Test"}
+    
+    SelectTest --> ViewDetails["View Test Details<br/>• Description<br/>• Duration<br/>• Questions<br/>• Marks"]
+    
+    ViewDetails --> CheckTabs{"Check Available Tabs"}
+    CheckTabs --> LeaderTab["View Leaderboard<br/>See Top Performers"]
+    CheckTabs --> AnalyticTab["View Analytics<br/>Check Statistics"]
+    CheckTabs --> ReviewTab["View Review Tab<br/>(If completed)"]
+    
+    ViewDetails --> Decision{"Already<br/>Completed?"}
+    
+    Decision -->|Yes| ShowAlert["❌ Cannot Retake<br/>One Attempt Only"]
+    ShowAlert --> BackToDetails["Stay on Test Details<br/>Can View Review Tab"]
+    BackToDetails --> LeaderTab
+    BackToDetails --> AnalyticTab
+    BackToDetails --> ReviewTab
+    
+    Decision -->|No| StartTest["✅ Click 'Start Test'"]
+    StartTest --> Fullscreen["Enter Fullscreen Mode"]
+    Fullscreen --> StartTimer["⏱️ Timer Starts"]
+    
+    StartTimer --> QuestionLoop{"Take Test"}
+    
+    QuestionLoop --> ReadQ["Read Question"]
+    ReadQ --> SelectAnswer["Select Answer<br/>(A, B, C, D)"]
+    SelectAnswer --> AutoSave["💾 Auto-save<br/>Every 30s"]
+    AutoSave --> Navigate{"Navigate"}
+    
+    Navigate -->|Next| NextQ["Next Question"]
+    Navigate -->|Previous| PrevQ["Previous Question"]
+    Navigate -->|Jump| JumpQ["Use Question Palette<br/>Jump to Any Question"]
+    
+    NextQ --> QuestionLoop
+    PrevQ --> QuestionLoop
+    JumpQ --> QuestionLoop
+    
+    Navigate -->|Finish| CheckComplete{"All Questions<br/>Answered?"}
+    CheckComplete -->|No| Warning["⚠️ Warning:<br/>Unanswered Questions"]
+    Warning --> DecideSubmit{"Continue<br/>or Review?"}
+    DecideSubmit -->|Review| QuestionLoop
+    
+    CheckComplete -->|Yes| SubmitChoice["Ready to Submit"]
+    DecideSubmit -->|Submit| SubmitChoice
+    
+    SubmitChoice --> SubmitConfirm{"Confirm<br/>Submission?"}
+    SubmitConfirm -->|No| QuestionLoop
+    SubmitConfirm -->|Yes| Processing["⚙️ Processing...<br/>• Calculate Score<br/>• Mark Answers<br/>• Update Ranks<br/>• Calculate Percentile"]
+    
+    QuestionLoop --> TimeUp{"Time<br/>Expired?"}
+    TimeUp -->|Yes| AutoSubmit["🔴 Auto-Submit"]
+    AutoSubmit --> Processing
+    
+    Processing --> ExitFullscreen["Exit Fullscreen"]
+    ExitFullscreen --> ShowResults["📊 Show Results Page"]
+    
+    ShowResults --> ResultSummary["Score Summary Card<br/>• Final Score & %<br/>• Rank & Percentile<br/>• Correct/Incorrect/Skipped"]
+    
+    ResultSummary --> ResultTabs{"Choose Tab"}
+    
+    ResultTabs --> OverviewTab["Overview Tab<br/>• Performance Cards<br/>• Statistics<br/>• Rank Display"]
+    
+    ResultTabs --> DetailedReview["Detailed Review Tab<br/>📝 All Questions"]
+    
+    DetailedReview --> FilterOptions{"Apply Filter"}
+    FilterOptions --> AllQ["Show All Questions"]
+    FilterOptions --> CorrectQ["✅ Correct Only"]
+    FilterOptions --> IncorrectQ["❌ Incorrect Only"]
+    FilterOptions --> SkippedQ["➖ Skipped Only"]
+    
+    AllQ --> QuestionDisplay["For Each Question:<br/>• Question Text<br/>• All 4 Options<br/>• Your Answer (if any)<br/>• Correct Answer<br/>• Explanation<br/>• Color Coding"]
+    CorrectQ --> QuestionDisplay
+    IncorrectQ --> QuestionDisplay
+    SkippedQ --> QuestionDisplay
+    
+    QuestionDisplay --> Actions{"Next Action"}
+    
+    Actions --> ReturnToTest["Return to Test Details"]
+    Actions --> BrowseMore["Browse More Tests"]
+    Actions --> ViewLeader["View Leaderboard"]
+    Actions --> EndSession(("End Session"))
+    
+    ReturnToTest --> ViewDetails
+    BrowseMore --> Browse
+    ViewLeader --> LeaderTab
+    
+    style Start fill:#2d5a3d,stroke:#4a9d5f,stroke-width:3px
+    style ShowAlert fill:#8b2e2e,stroke:#ff4444,stroke-width:2px
+    style StartTest fill:#2d5a3d,stroke:#4a9d5f,stroke-width:2px
+    style Fullscreen fill:#3d4a5a,stroke:#6b8caf,stroke-width:2px
+    style Processing fill:#5a4a2d,stroke:#9d8b4a,stroke-width:2px
+    style ShowResults fill:#2d5a3d,stroke:#4a9d5f,stroke-width:3px
+    style QuestionDisplay fill:#3d4a5a,stroke:#6b8caf,stroke-width:2px
+    style EndSession fill:#2d5a3d,stroke:#4a9d5f,stroke-width:3px
+    style AutoSubmit fill:#8b2e2e,stroke:#ff4444,stroke-width:2px
+    style TimeUp fill:#8b5a2e,stroke:#ff8844,stroke-width:2px

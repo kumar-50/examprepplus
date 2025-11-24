@@ -300,3 +300,58 @@ export async function PATCH(
     );
   }
 }
+
+/**
+ * DELETE /api/admin/tests/[id]/questions
+ * Delete all questions from a test
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    await requireAdmin();
+    const { id: testId } = await params;
+
+    // Verify test exists
+    const test = await db
+      .select()
+      .from(tests)
+      .where(eq(tests.id, testId))
+      .limit(1);
+
+    if (test.length === 0) {
+      return NextResponse.json(
+        { error: 'Test not found' },
+        { status: 404 }
+      );
+    }
+
+    // Delete all test questions
+    const deleted = await db
+      .delete(testQuestions)
+      .where(eq(testQuestions.testId, testId))
+      .returning();
+
+    // Update test's total questions and marks
+    await db
+      .update(tests)
+      .set({
+        totalQuestions: 0,
+        totalMarks: 0,
+        updatedAt: new Date(),
+      })
+      .where(eq(tests.id, testId));
+
+    return NextResponse.json({
+      message: `Successfully deleted ${deleted.length} question(s) from test`,
+      deletedCount: deleted.length,
+    });
+  } catch (error: any) {
+    console.error('Error deleting test questions:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to delete test questions' },
+      { status: error.status || 500 }
+    );
+  }
+}

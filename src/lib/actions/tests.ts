@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/db';
-import { tests, testQuestions, questions, userTestAttempts, userAnswers, sections } from '@/db/schema';
+import { tests, testQuestions, questions, userTestAttempts, userAnswers, sections, users } from '@/db/schema';
 import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/server';
 import { updateWeakTopicsAfterTest } from '@/lib/analytics/weak-topic-analyzer';
@@ -182,6 +182,23 @@ export async function createTestAttempt(testId: string, userId: string) {
   // Check if test is published
   if (!test.isPublished) {
     throw new Error('Test is not published');
+  }
+
+  // Check if user has already completed this test
+  const existingAttempts = await db
+    .select()
+    .from(userTestAttempts)
+    .where(
+      and(
+        eq(userTestAttempts.userId, userId),
+        eq(userTestAttempts.testId, testId),
+        sql`${userTestAttempts.status} IN ('submitted', 'auto_submitted')`
+      )
+    )
+    .limit(1);
+
+  if (existingAttempts.length > 0) {
+    throw new Error('You have already completed this test. Each test can only be attempted once.');
   }
 
   // TODO: Check subscription access for premium tests
@@ -434,6 +451,11 @@ export async function submitAttempt(attemptId: string) {
     // Don't fail the submission if weak topic analysis fails
   }
 
+  // Update ranks and percentiles for this test (async, don't wait)
+  updateTestRanks(attempt.testId).catch(error => {
+    console.error('Failed to update test ranks:', error);
+  });
+
   return {
     attemptId,
     score: Math.max(0, score),
@@ -467,7 +489,7 @@ export async function getAttemptReview(attemptId: string, userId: string) {
     return null;
   }
 
-  // Get all answers with question details
+  // Get ALL questions for this test with user answers (left join to include unanswered questions)
   const answersData = await db
     .select({
       answerId: userAnswers.id,
@@ -485,15 +507,15 @@ export async function getAttemptReview(attemptId: string, userId: string) {
       imageUrl: questions.imageUrl,
       questionOrder: testQuestions.questionOrder,
     })
-    .from(userAnswers)
-    .innerJoin(questions, eq(userAnswers.questionId, questions.id))
-    .innerJoin(testQuestions, 
+    .from(testQuestions)
+    .innerJoin(questions, eq(testQuestions.questionId, questions.id))
+    .leftJoin(userAnswers, 
       and(
-        eq(testQuestions.questionId, questions.id),
-        eq(testQuestions.testId, attempt.testId)
+        eq(userAnswers.questionId, questions.id),
+        eq(userAnswers.attemptId, attemptId)
       )
     )
-    .where(eq(userAnswers.attemptId, attemptId))
+    .where(eq(testQuestions.testId, attempt.testId))
     .orderBy(testQuestions.questionOrder);
 
   return {
@@ -519,4 +541,194 @@ export async function getUserAttemptHistory(userId: string, testId: string) {
     .orderBy(desc(userTestAttempts.startedAt));
 
   return attempts;
+}
+
+/**
+ * Check if user has completed a test
+ */
+export async function hasUserCompletedTest(userId: string, testId: string): Promise<boolean> {
+  const completedAttempts = await db
+    .select({ id: userTestAttempts.id })
+    .from(userTestAttempts)
+    .where(
+      and(
+        eq(userTestAttempts.userId, userId),
+        eq(userTestAttempts.testId, testId),
+        sql`${userTestAttempts.status} IN ('submitted', 'auto_submitted')`
+      )
+    )
+    .limit(1);
+
+  return completedAttempts.length > 0;
+}
+
+/**
+ * Get test analytics for a user
+ */
+export async function getUserTestAnalytics(userId: string) {
+  // Get all submitted attempts
+  const attempts = await db
+    .select({
+      id: userTestAttempts.id,
+      testId: userTestAttempts.testId,
+      testTitle: tests.title,
+      testType: tests.testType,
+      score: userTestAttempts.score,
+      totalMarks: userTestAttempts.totalMarks,
+      correctAnswers: userTestAttempts.correctAnswers,
+      incorrectAnswers: userTestAttempts.incorrectAnswers,
+      unanswered: userTestAttempts.unanswered,
+      timeSpent: userTestAttempts.timeSpent,
+      submittedAt: userTestAttempts.submittedAt,
+      rank: userTestAttempts.rank,
+      percentile: userTestAttempts.percentile,
+    })
+    .from(userTestAttempts)
+    .innerJoin(tests, eq(userTestAttempts.testId, tests.id))
+    .where(
+      and(
+        eq(userTestAttempts.userId, userId),
+        sql`${userTestAttempts.status} IN ('submitted', 'auto_submitted')`
+      )
+    )
+    .orderBy(desc(userTestAttempts.submittedAt));
+
+  // Calculate overall statistics
+  const totalTests = attempts.length;
+  const totalScore = attempts.reduce((sum, a) => sum + (a.score || 0), 0);
+  const totalPossibleMarks = attempts.reduce((sum, a) => sum + a.totalMarks, 0);
+  const averageScore = totalTests > 0 ? totalScore / totalTests : 0;
+  const averageAccuracy = totalPossibleMarks > 0 ? (totalScore / totalPossibleMarks) * 100 : 0;
+  const totalCorrect = attempts.reduce((sum, a) => sum + (a.correctAnswers || 0), 0);
+  const totalIncorrect = attempts.reduce((sum, a) => sum + (a.incorrectAnswers || 0), 0);
+  const totalUnanswered = attempts.reduce((sum, a) => sum + (a.unanswered || 0), 0);
+
+  // Calculate test type breakdown
+  const testTypeBreakdown = attempts.reduce((acc, attempt) => {
+    const type = attempt.testType || 'unknown';
+    if (!acc[type]) {
+      acc[type] = { count: 0, totalScore: 0, totalMarks: 0 };
+    }
+    acc[type].count++;
+    acc[type].totalScore += attempt.score || 0;
+    acc[type].totalMarks += attempt.totalMarks;
+    return acc;
+  }, {} as Record<string, { count: number; totalScore: number; totalMarks: number }>);
+
+  return {
+    attempts,
+    statistics: {
+      totalTests,
+      averageScore: parseFloat(averageScore.toFixed(2)),
+      averageAccuracy: parseFloat(averageAccuracy.toFixed(2)),
+      totalCorrect,
+      totalIncorrect,
+      totalUnanswered,
+      testTypeBreakdown,
+    },
+  };
+}
+
+/**
+ * Get leaderboard for a specific test
+ */
+export async function getTestLeaderboard(testId: string, limit: number = 100) {
+  const leaderboard = await db
+    .select({
+      attemptId: userTestAttempts.id,
+      userId: userTestAttempts.userId,
+      userName: sql<string>`COALESCE(${users.fullName}, ${users.email})`,
+      score: userTestAttempts.score,
+      totalMarks: userTestAttempts.totalMarks,
+      correctAnswers: userTestAttempts.correctAnswers,
+      incorrectAnswers: userTestAttempts.incorrectAnswers,
+      timeSpent: userTestAttempts.timeSpent,
+      submittedAt: userTestAttempts.submittedAt,
+      rank: userTestAttempts.rank,
+    })
+    .from(userTestAttempts)
+    .innerJoin(users, eq(userTestAttempts.userId, users.id))
+    .where(
+      and(
+        eq(userTestAttempts.testId, testId),
+        sql`${userTestAttempts.status} IN ('submitted', 'auto_submitted')`
+      )
+    )
+    .orderBy(desc(userTestAttempts.score), sql`${userTestAttempts.timeSpent} ASC`)
+    .limit(limit);
+
+  // Add rank based on order
+  return leaderboard.map((entry, index) => ({
+    ...entry,
+    rank: index + 1,
+    percentage: entry.totalMarks > 0 ? parseFloat(((entry.score || 0) / entry.totalMarks * 100).toFixed(2)) : 0,
+  }));
+}
+
+/**
+ * Get global leaderboard across all tests
+ */
+export async function getGlobalLeaderboard(limit: number = 100) {
+  const leaderboard = await db
+    .select({
+      userId: userTestAttempts.userId,
+      userName: sql<string>`COALESCE(${users.fullName}, ${users.email})`,
+      totalTests: sql<number>`COUNT(DISTINCT ${userTestAttempts.testId})::int`,
+      totalScore: sql<number>`SUM(${userTestAttempts.score})::int`,
+      averageScore: sql<number>`AVG(${userTestAttempts.score})::float`,
+      totalCorrect: sql<number>`SUM(${userTestAttempts.correctAnswers})::int`,
+      totalIncorrect: sql<number>`SUM(${userTestAttempts.incorrectAnswers})::int`,
+    })
+    .from(userTestAttempts)
+    .innerJoin(users, eq(userTestAttempts.userId, users.id))
+    .where(sql`${userTestAttempts.status} IN ('submitted', 'auto_submitted')`)
+    .groupBy(userTestAttempts.userId, users.fullName, users.email)
+    .orderBy(desc(sql`AVG(${userTestAttempts.score})`), desc(sql`COUNT(*)`))
+    .limit(limit);
+
+  return leaderboard.map((entry, index) => ({
+    ...entry,
+    rank: index + 1,
+    averageScore: parseFloat(entry.averageScore.toFixed(2)),
+  }));
+}
+
+/**
+ * Update ranks and percentiles for all attempts of a test
+ */
+export async function updateTestRanks(testId: string) {
+  // Get all submitted attempts ordered by score
+  const attempts = await db
+    .select({
+      id: userTestAttempts.id,
+      score: userTestAttempts.score,
+    })
+    .from(userTestAttempts)
+    .where(
+      and(
+        eq(userTestAttempts.testId, testId),
+        sql`${userTestAttempts.status} IN ('submitted', 'auto_submitted')`
+      )
+    )
+    .orderBy(desc(userTestAttempts.score));
+
+  const totalAttempts = attempts.length;
+
+  // Update each attempt with rank and percentile
+  for (let i = 0; i < attempts.length; i++) {
+    const rank = i + 1;
+    const percentile = totalAttempts > 1 
+      ? Math.round(((totalAttempts - rank) / (totalAttempts - 1)) * 10000) // Store as basis points
+      : 10000; // 100% if only one attempt
+
+    const attemptId = attempts[i]?.id;
+    if (attemptId) {
+      await db
+        .update(userTestAttempts)
+        .set({ rank, percentile })
+        .where(eq(userTestAttempts.id, attemptId));
+    }
+  }
+
+  return { updated: totalAttempts };
 }

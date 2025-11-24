@@ -8,7 +8,7 @@ import { z } from 'zod';
 const updateTestSchema = z.object({
   title: z.string().min(1).optional(),
   description: z.string().optional(),
-  testType: z.enum(['mock', 'live', 'sectional', 'practice']).optional(),
+  testType: z.enum(['mock-test', 'sectional', 'practice']).optional(),
   totalQuestions: z.number().int().min(1).optional(),
   totalMarks: z.number().int().min(1).optional(),
   duration: z.number().int().min(1).optional(),

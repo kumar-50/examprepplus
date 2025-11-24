@@ -14,7 +14,7 @@ interface TestInstructionsProps {
     id: string;
     title: string;
     description: string | null;
-    testType: 'mock' | 'live' | 'sectional' | 'practice';
+    testType: 'mock-test' | 'sectional' | 'practice';
     totalQuestions: number;
     totalMarks: number;
     duration: number;

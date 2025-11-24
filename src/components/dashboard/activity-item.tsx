@@ -40,8 +40,7 @@ export function ActivityItem({ test }: ActivityItemProps) {
   };
 
   const testTypeLabels: Record<string, string> = {
-    'mock': 'Mock Test',
-    'live': 'Live Test',
+    'mock-test': 'Mock Test',
     'sectional': 'Sectional Test',
     'practice': 'Practice',
   };

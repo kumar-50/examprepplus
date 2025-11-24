@@ -34,7 +34,7 @@ interface Question {
 interface Test {
   id: string;
   title: string;
-  testType: 'mock' | 'live' | 'sectional' | 'practice';
+  testType: 'mock-test' | 'sectional' | 'practice';
   duration: number;
   totalQuestions: number;
   totalMarks: number;
@@ -115,6 +115,26 @@ export function TestAttemptEngine({
 
   // Get current question from section-aware list
   const currentQuestion = currentSectionQuestions[currentQuestionIndex];
+
+  // Mark question as visited when viewed
+  useEffect(() => {
+    if (!currentQuestion || !isTestStarted) return;
+    
+    setAnswers((prev) => {
+      const existing = prev.get(currentQuestion.id);
+      // Only create entry if question hasn't been visited yet
+      if (!existing) {
+        const newAnswers = new Map(prev);
+        newAnswers.set(currentQuestion.id, {
+          questionId: currentQuestion.id,
+          selectedOption: null,
+          isMarkedForReview: false,
+        });
+        return newAnswers;
+      }
+      return prev;
+    });
+  }, [currentQuestion?.id, isTestStarted]);
 
   // Fullscreen hook with exit prevention (callback defined below)
   const { 

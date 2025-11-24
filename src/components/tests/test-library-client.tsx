@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Filter, Grid, List, Lock, Clock, FileText, Globe, Star } from 'lucide-react';
+import { Search, Filter, Grid, List, Lock, Clock, FileText, Globe, Star, TrendingUp, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ interface Test {
   id: string;
   title: string;
   description: string | null;
-  testType: 'mock' | 'live' | 'sectional' | 'practice';
+  testType: 'mock-test' | 'sectional' | 'practice';
   totalQuestions: number;
   totalMarks: number;
   duration: number;
@@ -35,9 +35,6 @@ interface TestLibraryClientProps {
 export function TestLibraryClient({ tests }: TestLibraryClientProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
-  const [examTypeFilter, setExamTypeFilter] = useState<string>('all');
-  const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
-  const [durationFilter, setDurationFilter] = useState<string>('all');
 
   // Filter tests based on search and filters
   const filteredTests = tests.filter((test) => {
@@ -54,7 +51,7 @@ export function TestLibraryClient({ tests }: TestLibraryClientProps) {
       <div className="bg-card rounded-lg border shadow-sm">
         <div className="p-6 space-y-6">
           {/* Search Bar */}
-          <div className="relative w-full">
+          <div className="relative w-full">{/* Search content */}
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               type="text"
@@ -65,58 +62,8 @@ export function TestLibraryClient({ tests }: TestLibraryClientProps) {
             />
           </div>
 
-          {/* Filters Grid */}
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Test Type</label>
-                <Select value={examTypeFilter} onValueChange={setExamTypeFilter}>
-                  <SelectTrigger className="w-full h-11 bg-background/50">
-                    <SelectValue placeholder="All Types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="mock">Mock Test</SelectItem>
-                    <SelectItem value="sectional">Sectional</SelectItem>
-                    <SelectItem value="practice">Practice</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Difficulty Level</label>
-                <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-                  <SelectTrigger className="w-full h-11 bg-background/50">
-                    <SelectValue placeholder="All Levels" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Levels</SelectItem>
-                    <SelectItem value="easy">Easy</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="hard">Hard</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Duration</label>
-                <Select value={durationFilter} onValueChange={setDurationFilter}>
-                  <SelectTrigger className="w-full h-11 bg-background/50">
-                    <SelectValue placeholder="All Durations" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Durations</SelectItem>
-                    <SelectItem value="30">Under 30 min</SelectItem>
-                    <SelectItem value="60">30-60 min</SelectItem>
-                    <SelectItem value="120">60-120 min</SelectItem>
-                    <SelectItem value="180">2+ hours</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* View Mode Buttons - Separate Row */}
-            <div className="flex items-center justify-between pt-4 border-t">
+          {/* View Mode Buttons */}
+          <div className="flex items-center justify-between pt-4 border-t">
               <span className="text-sm font-medium text-muted-foreground">View Mode</span>
               <div className="flex gap-2">
                 <Button
@@ -139,74 +86,6 @@ export function TestLibraryClient({ tests }: TestLibraryClientProps) {
                 </Button>
               </div>
             </div>
-
-            {/* Active Filters Display */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
-              <span className="text-sm font-medium text-muted-foreground">Active filters:</span>
-              {examTypeFilter !== 'all' && (
-                <Badge variant="secondary" className="gap-1 bg-secondary/10 text-secondary border-secondary/20">
-                  {examTypeFilter}
-                  <button
-                    onClick={() => setExamTypeFilter('all')}
-                    className="ml-1 hover:bg-secondary/20 rounded-full p-0.5"
-                  >
-                    ×
-                  </button>
-                </Badge>
-              )}
-              {difficultyFilter !== 'all' && (
-                <Badge variant="secondary" className="gap-1 bg-secondary/10 text-secondary border-secondary/20">
-                  {difficultyFilter}
-                  <button
-                    onClick={() => setDifficultyFilter('all')}
-                    className="ml-1 hover:bg-secondary/20 rounded-full p-0.5"
-                  >
-                    ×
-                  </button>
-                </Badge>
-              )}
-              {durationFilter !== 'all' && (
-                <Badge variant="secondary" className="gap-1 bg-secondary/10 text-secondary border-secondary/20">
-                  {durationFilter === '30' ? 'Under 30 min' :
-                   durationFilter === '60' ? '30-60 min' :
-                   durationFilter === '120' ? '60-120 min' :
-                   durationFilter === '180' ? '2+ hours' : durationFilter}
-                  <button
-                    onClick={() => setDurationFilter('all')}
-                    className="ml-1 hover:bg-secondary/20 rounded-full p-0.5"
-                  >
-                    ×
-                  </button>
-                </Badge>
-              )}
-              {searchQuery && (
-                <Badge variant="secondary" className="gap-1 bg-secondary/10 text-secondary border-secondary/20">
-                  Search: "{searchQuery}"
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="ml-1 hover:bg-secondary/20 rounded-full p-0.5"
-                  >
-                    ×
-                  </button>
-                </Badge>
-              )}
-              {(examTypeFilter !== 'all' || difficultyFilter !== 'all' || durationFilter !== 'all' || searchQuery) && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setExamTypeFilter('all');
-                    setDifficultyFilter('all');
-                    setDurationFilter('all');
-                    setSearchQuery('');
-                  }}
-                  className="h-7 px-2 text-xs"
-                >
-                  Clear all
-                </Button>
-              )}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -295,12 +174,6 @@ function TestCard({ test }: { test: Test }) {
           )}
         </h3>
 
-        {test.userAttemptCount > 0 && (
-          <p className="text-sm text-secondary">
-            Attempted {test.userAttemptCount}x
-          </p>
-        )}
-
         {/* Action Button */}
         <Button 
           className="w-full font-medium border-0"
@@ -309,7 +182,7 @@ function TestCard({ test }: { test: Test }) {
             window.location.href = `/dashboard/tests/${test.id}`;
           }}
         >
-          {test.userAttemptCount > 0 ? 'View Details' : 'Start Test'}
+          View Details
         </Button>
       </div>
     </div>
@@ -348,12 +221,6 @@ function TestListItem({ test }: { test: Test }) {
             <Badge variant="outline" className="text-xs capitalize">
               {test.testType}
             </Badge>
-
-            {test.userAttemptCount > 0 && (
-              <span className="text-sm text-secondary">
-                Attempted {test.userAttemptCount}x
-              </span>
-            )}
           </div>
         </div>
 
@@ -365,7 +232,7 @@ function TestListItem({ test }: { test: Test }) {
               window.location.href = `/dashboard/tests/${test.id}`;
             }}
           >
-            {test.userAttemptCount > 0 ? 'View Details' : 'Start Test'}
+            View Details
           </Button>
         </div>
       </div>

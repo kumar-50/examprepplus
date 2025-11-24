@@ -1,0 +1,191 @@
+%%{init: {'theme':'dark'}}%%
+sequenceDiagram
+    autonumber
+    actor User
+    participant Browser
+    participant TestLibrary as Test Library Page
+    participant TestDetail as Test Detail Page
+    participant TestAttempt as Test Attempt Engine
+    participant TestReview as Test Review Page
+    participant ServerActions as Server Actions
+    participant Database
+
+    %% Test Discovery & Selection
+    rect rgb(25, 50, 80)
+    Note over User,Database: Test Discovery & Selection Phase
+    User->>Browser: Navigate to /dashboard/tests
+    Browser->>TestLibrary: Load test library
+    TestLibrary->>+ServerActions: getTests()
+    ServerActions->>+Database: SELECT * FROM tests
+    Database-->>-ServerActions: Return all tests
+    ServerActions-->>-TestLibrary: Return test list
+    TestLibrary-->>Browser: Display test cards
+    Browser-->>User: Show available tests
+    end
+
+    %% Test Detail View
+    rect rgb(20, 60, 40)
+    Note over User,Database: Test Detail & Validation Phase
+    User->>Browser: Click on test
+    Browser->>TestDetail: Navigate to /tests/{testId}
+    TestDetail->>+ServerActions: getTestById(testId)
+    ServerActions->>+Database: SELECT test details
+    Database-->>-ServerActions: Return test data
+    ServerActions-->>-TestDetail: Return test info
+    
+    TestDetail->>+ServerActions: getUserAttemptHistory(userId, testId)
+    ServerActions->>+Database: SELECT user attempts
+    Database-->>-ServerActions: Return attempt history
+    ServerActions-->>-TestDetail: Return attempts
+    
+    TestDetail->>+ServerActions: getTestLeaderboard(testId)
+    ServerActions->>+Database: SELECT top attempts with ranks
+    Database-->>-ServerActions: Return leaderboard
+    ServerActions-->>-TestDetail: Return rankings
+    
+    TestDetail->>+ServerActions: getUserTestAnalytics(userId)
+    ServerActions->>+Database: SELECT user statistics
+    Database-->>-ServerActions: Return analytics
+    ServerActions-->>-TestDetail: Return stats
+    
+    alt User has completed test
+        TestDetail->>+ServerActions: getAttemptReview(attemptId, userId)
+        ServerActions->>+Database: SELECT all questions with answers
+        Database-->>-ServerActions: Return review data
+        ServerActions-->>-TestDetail: Return complete review
+        TestDetail-->>Browser: Show tabs: Leaderboard, Analytics, Review
+    else User has not completed test
+        TestDetail-->>Browser: Show tabs: Leaderboard, Analytics
+    end
+    
+    Browser-->>User: Display test details with tabs
+    end
+
+    %% Starting Test Attempt
+    rect rgb(80, 50, 20)
+    Note over User,Database: Test Attempt Initialization Phase
+    User->>Browser: Click "Start Test"
+    Browser->>TestAttempt: Navigate to /tests/{testId}/attempt
+    
+    TestAttempt->>+ServerActions: hasUserCompletedTest(userId, testId)
+    ServerActions->>+Database: CHECK for completed attempts
+    Database-->>-ServerActions: Return completion status
+    ServerActions-->>-TestAttempt: Return hasCompleted
+    
+    alt User already completed test
+        TestAttempt-->>Browser: Redirect to test detail
+        Browser-->>User: Show "Test already completed" alert
+    else User can take test
+        TestAttempt->>+ServerActions: createTestAttempt(userId, testId)
+        ServerActions->>+Database: INSERT INTO user_test_attempts
+        Database-->>-ServerActions: Return attemptId
+        ServerActions->>+Database: SELECT test questions
+        Database-->>-ServerActions: Return questions
+        ServerActions-->>-TestAttempt: Return attemptId & questions
+        TestAttempt-->>Browser: Enter fullscreen, start timer
+        Browser-->>User: Display first question
+    end
+    end
+
+    %% Taking Test
+    rect rgb(60, 30, 60)
+    Note over User,Database: Test Taking Phase
+    loop For each question interaction
+        User->>Browser: Select answer option
+        Browser->>TestAttempt: Update UI state
+        TestAttempt->>+ServerActions: saveAnswer(attemptId, questionId, selectedOption)
+        ServerActions->>+Database: INSERT/UPDATE user_answers
+        Database-->>-ServerActions: Confirm saved
+        ServerActions-->>-TestAttempt: Answer saved
+        TestAttempt-->>Browser: Update question palette
+    end
+    
+    User->>Browser: Navigate between questions
+    Browser->>TestAttempt: Update current question
+    TestAttempt-->>Browser: Display question
+    
+    par Auto-save timer
+        TestAttempt->>ServerActions: Auto-save progress every 30s
+        ServerActions->>Database: UPDATE user_answers
+    and Timer countdown
+        TestAttempt->>Browser: Update timer display
+    end
+    end
+
+    %% Submitting Test
+    rect rgb(40, 40, 80)
+    Note over User,Database: Test Submission & Scoring Phase
+    alt User submits manually
+        User->>Browser: Click "Submit Test"
+        Browser->>TestAttempt: Show confirmation dialog
+        User->>Browser: Confirm submission
+    else Time runs out
+        TestAttempt->>Browser: Auto-submit triggered
+    end
+    
+    TestAttempt->>+ServerActions: submitTest(attemptId, userId)
+    ServerActions->>+Database: BEGIN TRANSACTION
+    
+    ServerActions->>Database: SELECT all user answers
+    Database-->>ServerActions: Return answers
+    
+    ServerActions->>Database: SELECT correct answers
+    Database-->>ServerActions: Return correct answers
+    
+    ServerActions->>ServerActions: Calculate score, correct, incorrect, unanswered
+    
+    ServerActions->>Database: UPDATE user_test_attempts<br/>(score, status='submitted')
+    Database-->>ServerActions: Confirm update
+    
+    ServerActions->>Database: UPDATE all user_answers<br/>(mark as correct/incorrect)
+    Database-->>ServerActions: Confirm update
+    
+    ServerActions->>+Database: Call updateTestRanks(testId)
+    Database->>Database: Calculate ranks & percentiles<br/>for all attempts
+    Database-->>-ServerActions: Ranks updated
+    
+    ServerActions->>Database: COMMIT TRANSACTION
+    Database-->>-ServerActions: Transaction complete
+    
+    ServerActions-->>-TestAttempt: Return final results
+    TestAttempt-->>Browser: Exit fullscreen, navigate to review
+    end
+
+    %% Review Results
+    rect rgb(20, 60, 40)
+    Note over User,Database: Results Review Phase
+    Browser->>TestReview: Navigate to /attempt/{attemptId}/review
+    TestReview->>+ServerActions: getAttemptReview(attemptId, userId)
+    ServerActions->>+Database: SELECT attempt, test, all questions with answers
+    Database-->>-ServerActions: Return complete review data
+    ServerActions-->>-TestReview: Return review with 100 questions
+    
+    TestReview-->>Browser: Display score summary
+    Browser-->>User: Show score, rank, percentile
+    
+    User->>Browser: Switch to Review tab
+    Browser->>TestReview: Show question-by-question breakdown
+    TestReview-->>Browser: Display all 100 questions
+    
+    User->>Browser: Apply filter (Correct/Incorrect/Skipped)
+    Browser->>TestReview: Filter questions
+    TestReview-->>Browser: Show filtered questions
+    
+    loop For each question review
+        Browser-->>User: Show question with:<br/>- User's answer<br/>- Correct answer<br/>- Explanation<br/>- Color coding
+    end
+    end
+
+    %% Viewing Leaderboard & Analytics
+    rect rgb(60, 50, 30)
+    Note over User,Database: Leaderboard & Analytics Phase
+    User->>Browser: View Leaderboard tab
+    Browser->>TestDetail: Display leaderboard
+    TestDetail-->>User: Show top 50 with ranks, scores, percentiles
+    
+    User->>Browser: View Analytics tab
+    Browser->>TestDetail: Display analytics
+    TestDetail-->>User: Show performance stats, attempts history
+    end
+
+    Note over User,Database: Test Feature Complete - User can retake different tests

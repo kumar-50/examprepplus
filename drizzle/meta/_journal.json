@@ -64,6 +64,13 @@
       "when": 1763887876247,
       "tag": "0008_windy_master_mold",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1763995009740,
+      "tag": "0009_giant_matthew_murdock",
+      "breakpoints": true
     }
   ]
 }

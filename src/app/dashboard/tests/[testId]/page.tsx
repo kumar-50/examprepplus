@@ -2,7 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { requireAuth } from '@/lib/auth/server';
-import { getTestById, getUserAttemptHistory } from '@/lib/actions/tests';
+import { getTestById, getUserAttemptHistory, getTestLeaderboard, getUserTestAnalytics, getAttemptReview } from '@/lib/actions/tests';
 import { TestDetailView } from '@/components/tests/test-detail-view';
 
 interface TestDetailPageProps {
@@ -25,8 +25,22 @@ export default async function TestDetailPage({ params }: TestDetailPageProps) {
     notFound();
   }
 
-  // Fetch attempt history
-  const attemptHistory = await getUserAttemptHistory(user.id, testId);
+  // Fetch attempt history, leaderboard, and analytics
+  const [attemptHistory, leaderboard, analytics] = await Promise.all([
+    getUserAttemptHistory(user.id, testId),
+    getTestLeaderboard(testId, 50),
+    getUserTestAnalytics(user.id),
+  ]);
+
+  // Get the most recent completed attempt for review
+  const completedAttempt = attemptHistory.find(
+    attempt => attempt.status === 'submitted' || attempt.status === 'auto_submitted'
+  );
+
+  let review = null;
+  if (completedAttempt) {
+    review = await getAttemptReview(completedAttempt.id, user.id);
+  }
 
   return (
     <div>
@@ -46,6 +60,9 @@ export default async function TestDetailPage({ params }: TestDetailPageProps) {
         test={test} 
         userId={user.id}
         attemptHistory={attemptHistory}
+        leaderboard={leaderboard}
+        analytics={analytics}
+        review={review}
       />
     </div>
   );

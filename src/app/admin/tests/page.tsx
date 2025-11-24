@@ -155,6 +155,41 @@ export default function TestsListPage() {
     }
   };
 
+  const handleToggleFree = async (testId: string, currentStatus: boolean) => {
+    const newStatus = !currentStatus;
+    
+    // Optimistic update
+    setTests((prev) =>
+      prev.map((t) => (t.id === testId ? { ...t, isFree: newStatus } : t))
+    );
+
+    try {
+      const response = await fetch(`/api/admin/tests/${testId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isFree: newStatus }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update free status');
+
+      toast({
+        title: 'Success',
+        description: `Test marked as ${newStatus ? 'free' : 'premium'} successfully`,
+      });
+    } catch (error: any) {
+      // Revert on error
+      setTests((prev) =>
+        prev.map((t) => (t.id === testId ? { ...t, isFree: currentStatus } : t))
+      );
+      
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update free status',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleViewQuestions = async (test: Test) => {
     setViewingTest(test);
     setViewQuestionsDialogOpen(true);
@@ -201,7 +236,8 @@ export default function TestsListPage() {
             setTestToDelete(id);
             setDeleteDialogOpen(true);
           },
-          handleTogglePublish
+          handleTogglePublish,
+          handleToggleFree
         )}
         data={tests}
         loading={loading}

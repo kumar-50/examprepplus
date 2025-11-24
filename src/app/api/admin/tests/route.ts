@@ -8,7 +8,7 @@ import { z } from 'zod';
 const createTestSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
-  testType: z.enum(['mock', 'live', 'sectional', 'practice']),
+  testType: z.enum(['mock-test', 'sectional', 'practice']),
   totalQuestions: z.number().int().min(1, 'Must have at least 1 question'),
   totalMarks: z.number().int().min(1, 'Total marks must be at least 1'),
   duration: z.number().int().min(1, 'Duration must be at least 1 minute'),
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
-    const testType = searchParams.get('testType') as 'mock' | 'live' | 'sectional' | 'practice' | null;
+    const testType = searchParams.get('testType') as 'mock-test' | 'sectional' | 'practice' | null;
     const isPublished = searchParams.get('isPublished');
     const search = searchParams.get('search');
 

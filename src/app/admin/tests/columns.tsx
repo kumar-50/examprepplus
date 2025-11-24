@@ -11,7 +11,7 @@ export interface Test {
   id: string;
   title: string;
   description?: string;
-  testType: 'mock' | 'live' | 'sectional' | 'practice';
+  testType: 'mock-test' | 'sectional' | 'practice';
   totalQuestions: number;
   totalMarks: number;
   duration: number;
@@ -38,7 +38,8 @@ export const createTestColumns = (
   onView: (test: Test) => void,
   onEdit: (test: Test) => void,
   onDelete: (id: string) => void,
-  onTogglePublish: (testId: string, currentStatus: boolean) => void
+  onTogglePublish: (testId: string, currentStatus: boolean) => void,
+  onToggleFree: (testId: string, currentStatus: boolean) => void
 ): ColumnDef<Test>[] => [
   {
     accessorKey: 'title',
@@ -121,11 +122,18 @@ export const createTestColumns = (
               {test.isPublished ? 'Published' : 'Draft'}
             </Badge>
           </div>
-          {test.isFree && (
-            <Badge variant="outline" className="text-xs">
-              Free
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={test.isFree}
+              onCheckedChange={() => onToggleFree(test.id, test.isFree)}
+            />
+            <Badge
+              variant={test.isFree ? 'default' : 'outline'}
+              className="text-xs"
+            >
+              {test.isFree ? 'Free' : 'Premium'}
             </Badge>
-          )}
+          </div>
         </div>
       );
     },

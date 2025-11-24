@@ -1,10 +1,10 @@
 import { pgTable, uuid, text, timestamp, boolean, pgEnum, integer, json, real } from 'drizzle-orm/pg-core';
 import { users } from './users';
 
-export const testTypeEnum = pgEnum('test_type', ['mock', 'live', 'sectional', 'practice']);
+export const testTypeEnum = pgEnum('test_type', ['mock-test', 'sectional', 'practice']);
 
 /**
- * Tests table - configuration for mock, live, sectional, and practice tests
+ * Tests table - configuration for mock tests, sectional tests, and practice mode
  */
 export const tests = pgTable('tests', {
   id: uuid('id').primaryKey().defaultRandom(),

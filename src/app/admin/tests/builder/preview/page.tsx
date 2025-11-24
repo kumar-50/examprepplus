@@ -143,19 +143,19 @@ export default function TestPreviewPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create test');
+        throw new Error(test.isPublished ? 'Failed to update test' : 'Failed to create test');
       }
 
       toast({
         title: 'Success',
-        description: 'Test created and published successfully!',
+        description: test.isPublished ? 'Test updated successfully!' : 'Test created and published successfully!',
       });
 
       router.push('/admin/tests');
     } catch (error: any) {
       toast({
         title: 'Error',
-        description: error.message || 'Failed to create test',
+        description: error.message || (test.isPublished ? 'Failed to update test' : 'Failed to create test'),
         variant: 'destructive',
       });
     } finally {
@@ -405,9 +405,9 @@ export default function TestPreviewPage() {
       </Card>
 
       {/* Bottom Action Bar */}
-      {/* <Card className="py-1 sticky bottom-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-40">
+      <Card className="py-1 fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 shadow-lg ml-[var(--sidebar-width,0px)]">
         <CardContent className="p-2">
-          <div className="mx-auto flex items-center justify-between">
+          <div className="mx-auto flex items-center justify-between max-w-[1400px] px-4">
             <div className="text-sm text-muted-foreground">
               <strong>{test.totalQuestions}</strong> questions | <strong>{test.totalMarks}</strong> marks
             </div>
@@ -420,24 +420,22 @@ export default function TestPreviewPage() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Edit
               </Button>
-              {!test.isPublished && (
-                <Button
-                  onClick={handlePublish}
-                  disabled={publishing}
-                  size="lg"
-                >
-                  {publishing ? (
-                    <Spinner className="mr-2 h-4 w-4" />
-                  ) : (
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                  )}
-                  {publishing ? 'Creating...' : 'Create Test'}
-                </Button>
-              )}
+              <Button
+                onClick={handlePublish}
+                disabled={publishing}
+                size="lg"
+              >
+                {publishing ? (
+                  <Spinner className="mr-2 h-4 w-4" />
+                ) : (
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                )}
+                {publishing ? (test.isPublished ? 'Updating...' : 'Creating...') : (test.isPublished ? 'Update Test' : 'Create Test')}
+              </Button>
             </div>
           </div>
         </CardContent>
-      </Card> */}
+      </Card>
     </div>
   );
 }
