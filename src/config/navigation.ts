@@ -99,11 +99,6 @@ export const userNavItems: NavItem[] = [
     icon: 'BarChart3',
   },
   {
-    title: 'Subscription',
-    href: '/dashboard/subscription',
-    icon: 'CreditCard',
-  },
-  {
     title: 'Settings',
     href: '/dashboard/settings',
     icon: 'Settings',

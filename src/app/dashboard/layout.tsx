@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/server'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
+import { Toaster } from '@/components/ui/toaster'
 import { userNavItems } from '@/config/navigation'
 import { db } from '@/db'
 import { users } from '@/db/schema/users'
@@ -37,16 +38,19 @@ export default async function UserDashboardLayout({
   }
 
   return (
-    <DashboardLayout
-      navItems={userNavItems}
-      title="My Dashboard"
-      user={{
-        email: dbUser.email,
-        fullName: dbUser.fullName,
-        role: dbUser.role,
-      }}
-    >
-      {children}
-    </DashboardLayout>
+    <>
+      <DashboardLayout
+        navItems={userNavItems}
+        title="My Dashboard"
+        user={{
+          email: dbUser.email,
+          fullName: dbUser.fullName,
+          role: dbUser.role,
+        }}
+      >
+        {children}
+      </DashboardLayout>
+      <Toaster />
+    </>
   )
 }

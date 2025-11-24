@@ -6,7 +6,6 @@ import { Menu, X, PanelLeftClose, PanelLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SidebarNav } from './sidebar-nav'
 import { UserNav } from '@/components/auth/user-nav'
-import { ThemeSwitcher } from '@/components/theme-switcher'
 import { NavItem } from '@/config/navigation'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/logo'
@@ -135,7 +134,6 @@ export function DashboardLayout({ children, navItems, title, user }: DashboardLa
           </Button>
           
           <div className="flex flex-1 items-center justify-end gap-4">
-            <ThemeSwitcher />
             <UserNav user={user} />
           </div>
         </header>
