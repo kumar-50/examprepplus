@@ -29,6 +29,29 @@
    # Copy and run: drizzle/0000_green_blink.sql
    # This creates all core tables
    ```
+   
+   **Step 2: Auth Triggers**
+   ```bash
+   # Copy and run: drizzle/0001_auth_triggers.sql
+   ```
+   
+   **Step 3-8: Additional Features**
+   ```bash
+   # Apply in order:
+   drizzle/0002_fix_auth_trigger.sql
+   drizzle/0003_add_question_verification.sql
+   drizzle/0004_add_draft_status.sql
+   drizzle/0005_set_draft_default.sql
+   drizzle/0006_remove_draft_status.sql
+   drizzle/0007_add_test_fields.sql
+   drizzle/0008_windy_master_mold.sql
+   ```
+   
+   **Step 9: Add Monthly Goal Type** ⭐ NEW
+   ```bash
+   # Copy and run: drizzle/0009_add_monthly_to_goal_type.sql
+   # This adds 'monthly' option to goal_type enum
+   ```
 
    **Step 2: Auth Triggers**
    ```bash

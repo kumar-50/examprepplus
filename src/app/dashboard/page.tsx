@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const metadata: Metadata = {
@@ -17,27 +18,57 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>My Tests</CardTitle>
-            <CardDescription>View and manage your practice tests</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">0</div>
-            <p className="text-sm text-muted-foreground mt-2">No tests yet. Start practicing!</p>
-          </CardContent>
-        </Card>
+        <Link href="/dashboard/tests">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardHeader>
+              <CardTitle>My Tests</CardTitle>
+              <CardDescription>View and manage your practice tests</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">📝</div>
+              <p className="text-sm text-muted-foreground mt-2">Start practicing now!</p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Progress</CardTitle>
-            <CardDescription>Track your learning progress</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">0%</div>
-            <p className="text-sm text-muted-foreground mt-2">Your progress will appear here</p>
-          </CardContent>
-        </Card>
+        <Link href="/dashboard/progress">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardHeader>
+              <CardTitle>Progress</CardTitle>
+              <CardDescription>Track your learning progress</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">📊</div>
+              <p className="text-sm text-muted-foreground mt-2">View your exam readiness</p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/dashboard/analytics">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardHeader>
+              <CardTitle>Analytics</CardTitle>
+              <CardDescription>Detailed performance insights</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">📈</div>
+              <p className="text-sm text-muted-foreground mt-2">Analyze your performance</p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/dashboard/practice">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardHeader>
+              <CardTitle>Practice Mode</CardTitle>
+              <CardDescription>Smart practice with AI recommendations</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">🎯</div>
+              <p className="text-sm text-muted-foreground mt-2">Practice weak topics</p>
+            </CardContent>
+          </Card>
+        </Link>
 
         <Card>
           <CardHeader>

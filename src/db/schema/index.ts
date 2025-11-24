@@ -11,6 +11,9 @@ export * from './subscription-plans';
 export * from './subscriptions';
 export * from './coupons';
 export * from './coupon-usage';
+export * from './user-goals';
+export * from './achievements';
+export * from './user-exams';
 // Practice mode uses existing tables + these helpers
 export { weakTopics, revisionSchedule } from './practice-sessions';
 export { practiceStreaks, practiceCalendar } from './practice-streaks';
