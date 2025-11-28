@@ -2,7 +2,9 @@ import { Metadata } from 'next'
 import { requireAuth } from '@/lib/auth/server'
 import { SettingsLayout } from '@/components/settings/settings-layout'
 import { ProfileSection } from '@/components/settings/profile-section'
+import { SubscriptionSection } from '@/components/settings/subscription-section'
 import { SecuritySection } from '@/components/settings/security-section'
+import { ReferralSection } from '@/components/settings/referral-section'
 import { DangerZone } from '@/components/settings/danger-zone'
 
 export const metadata: Metadata = {
@@ -17,7 +19,9 @@ export default async function SettingsPage() {
     <SettingsLayout>
       <div className="space-y-6">
         <ProfileSection userId={user.id} />
+        <SubscriptionSection userId={user.id} />
         <SecuritySection userId={user.id} />
+        <ReferralSection userId={user.id} />
         <DangerZone userId={user.id} />
       </div>
     </SettingsLayout>

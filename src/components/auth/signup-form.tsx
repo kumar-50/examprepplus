@@ -25,6 +25,7 @@ const signUpSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string(),
+  referralCode: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ['confirmPassword'],
@@ -35,9 +36,10 @@ type SignUpFormValues = z.infer<typeof signUpSchema>
 interface SignUpFormProps {
   onSuccess?: () => void
   redirectTo?: string
+  referralCode?: string | undefined
 }
 
-export function SignUpForm({ onSuccess, redirectTo = '/' }: SignUpFormProps) {
+export function SignUpForm({ onSuccess, redirectTo = '/', referralCode }: SignUpFormProps) {
   const { signUp } = useAuth()
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
@@ -52,6 +54,7 @@ export function SignUpForm({ onSuccess, redirectTo = '/' }: SignUpFormProps) {
       email: '',
       password: '',
       confirmPassword: '',
+      referralCode: referralCode || '',
     },
   })
 
@@ -79,6 +82,25 @@ export function SignUpForm({ onSuccess, redirectTo = '/' }: SignUpFormProps) {
         setError('An account with this email already exists.')
         setLoading(false)
         return
+      }
+      
+      // Apply referral code if provided
+      if (values.referralCode) {
+        try {
+          const response = await fetch('/api/referrals/code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ referralCode: values.referralCode }),
+          });
+          
+          const result = await response.json();
+          if (!result.success) {
+            console.error('Failed to apply referral code:', result.error);
+            // Don't fail signup if referral fails
+          }
+        } catch (error) {
+          console.error('Error applying referral code:', error);
+        }
       }
       
       if (!data.user.email_confirmed_at) {
@@ -206,6 +228,24 @@ export function SignUpForm({ onSuccess, redirectTo = '/' }: SignUpFormProps) {
                     )}
                   </Button>
                 </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="referralCode"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Referral Code (Optional)</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="Enter referral code" 
+                  className="h-11"
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -9,7 +9,10 @@ import { Spinner } from '@/components/ui/spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, ArrowLeft } from 'lucide-react';
+import { CheckCircle, ArrowLeft, Edit2, X, Save } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Alert,
   AlertDescription,
@@ -60,6 +63,9 @@ export default function TestPreviewPage() {
   const [publishing, setPublishing] = useState(false);
   const [test, setTest] = useState<TestData | null>(null);
   const [sectionQuestions, setSectionQuestions] = useState<SectionQuestions[]>([]);
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<Question | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (testId) {
@@ -160,6 +166,104 @@ export default function TestPreviewPage() {
       });
     } finally {
       setPublishing(false);
+    }
+  };
+
+  const handleEditQuestion = (question: Question) => {
+    setEditingQuestionId(question.id);
+    setEditForm({ ...question });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingQuestionId(null);
+    setEditForm(null);
+  };
+
+  const handleSaveQuestion = async () => {
+    if (!editForm || !testId) return;
+
+    // Validate form
+    if (!editForm.questionText.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Question text is required',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!editForm.option1.trim() || !editForm.option2.trim() || 
+        !editForm.option3.trim() || !editForm.option4.trim()) {
+      toast({
+        title: 'Error',
+        description: 'All options are required',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const response = await fetch(`/api/admin/tests/${testId}/questions/${editForm.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questionText: editForm.questionText,
+          option1: editForm.option1,
+          option2: editForm.option2,
+          option3: editForm.option3,
+          option4: editForm.option4,
+          correctOption: editForm.correctOption,
+          marks: editForm.marks,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update question');
+      }
+
+      // Update local state
+      setSectionQuestions(prev => 
+        prev.map(section => ({
+          ...section,
+          questions: section.questions.map(q => 
+            q.id === editForm.id ? editForm : q
+          ),
+          totalMarks: section.questions.reduce((sum, q) => 
+            sum + (q.id === editForm.id ? editForm.marks : q.marks), 0
+          ),
+        }))
+      );
+
+      // Update test total marks if changed
+      if (test) {
+        const oldQuestion = sectionQuestions
+          .flatMap(s => s.questions)
+          .find(q => q.id === editForm.id);
+        
+        if (oldQuestion && oldQuestion.marks !== editForm.marks) {
+          setTest({
+            ...test,
+            totalMarks: test.totalMarks - oldQuestion.marks + editForm.marks,
+          });
+        }
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Question updated successfully',
+      });
+
+      setEditingQuestionId(null);
+      setEditForm(null);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update question',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -354,49 +458,193 @@ export default function TestPreviewPage() {
                 <div className="space-y-6">
                   {section.questions
                     .sort((a, b) => a.questionOrder - b.questionOrder)
-                    .map((question, index) => (
-                      <Card key={question.id}>
-                        <CardContent className="p-6">
-                          <div className="space-y-4">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Badge variant="outline">Q{index + 1}</Badge>
-                                  <Badge variant="secondary">{question.marks} mark{question.marks > 1 ? 's' : ''}</Badge>
-                                </div>
-                                <p className="text-base font-medium">{question.questionText}</p>
-                              </div>
-                            </div>
+                    .map((question, index) => {
+                      const isEditing = editingQuestionId === question.id;
+                      const displayQuestion = isEditing && editForm ? editForm : question;
 
-                            <div className="grid gap-2">
-                              {[
-                                { label: 'A', text: question.option1, value: 1 },
-                                { label: 'B', text: question.option2, value: 2 },
-                                { label: 'C', text: question.option3, value: 3 },
-                                { label: 'D', text: question.option4, value: 4 },
-                              ].map((option) => (
-                                <div
-                                  key={option.value}
-                                  className={`p-3 rounded-lg border ${
-                                    option.value === question.correctOption
-                                      ? 'border-green-500 bg-green-100 dark:bg-green-900/30 font-medium'
-                                      : 'border-border'
-                                  }`}
-                                >
+                      return (
+                        <Card key={question.id} className={isEditing ? 'border-primary' : ''}>
+                          <CardContent className="p-6">
+                            {isEditing && editForm ? (
+                              // Edit Mode
+                              <div className="space-y-4">
+                                <div className="flex items-start justify-between mb-4">
                                   <div className="flex items-center gap-2">
-                                    <span className="font-medium">{option.label}.</span>
-                                    <span>{option.text}</span>
-                                    {option.value === question.correctOption && (
-                                      <CheckCircle className="ml-auto h-4 w-4 text-green-600" />
-                                    )}
+                                    <Badge variant="outline">Q{index + 1}</Badge>
+                                    <Badge variant="secondary">Editing</Badge>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={handleCancelEdit}
+                                      disabled={saving}
+                                    >
+                                      <X className="h-4 w-4 mr-1" />
+                                      Cancel
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      onClick={handleSaveQuestion}
+                                      disabled={saving}
+                                    >
+                                      {saving ? (
+                                        <Spinner className="h-4 w-4 mr-1" />
+                                      ) : (
+                                        <Save className="h-4 w-4 mr-1" />
+                                      )}
+                                      Save
+                                    </Button>
                                   </div>
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+
+                                <div className="space-y-3">
+                                  <div>
+                                    <Label htmlFor="questionText">Question Text</Label>
+                                    <Input
+                                      id="questionText"
+                                      value={editForm.questionText}
+                                      onChange={(e) => setEditForm({ ...editForm, questionText: e.target.value })}
+                                      className="mt-1"
+                                      placeholder="Enter question text"
+                                    />
+                                  </div>
+
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div>
+                                      <Label htmlFor="option1">Option A</Label>
+                                      <Input
+                                        id="option1"
+                                        value={editForm.option1}
+                                        onChange={(e) => setEditForm({ ...editForm, option1: e.target.value })}
+                                        className="mt-1"
+                                        placeholder="Option A"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label htmlFor="option2">Option B</Label>
+                                      <Input
+                                        id="option2"
+                                        value={editForm.option2}
+                                        onChange={(e) => setEditForm({ ...editForm, option2: e.target.value })}
+                                        className="mt-1"
+                                        placeholder="Option B"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label htmlFor="option3">Option C</Label>
+                                      <Input
+                                        id="option3"
+                                        value={editForm.option3}
+                                        onChange={(e) => setEditForm({ ...editForm, option3: e.target.value })}
+                                        className="mt-1"
+                                        placeholder="Option C"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label htmlFor="option4">Option D</Label>
+                                      <Input
+                                        id="option4"
+                                        value={editForm.option4}
+                                        onChange={(e) => setEditForm({ ...editForm, option4: e.target.value })}
+                                        className="mt-1"
+                                        placeholder="Option D"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="flex gap-4">
+                                    <div className="flex-1">
+                                      <Label>Correct Answer</Label>
+                                      <RadioGroup
+                                        value={editForm.correctOption.toString()}
+                                        onValueChange={(value) => setEditForm({ ...editForm, correctOption: parseInt(value) })}
+                                        className="flex gap-4 mt-2"
+                                      >
+                                        <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value="1" id="correct-1" />
+                                          <Label htmlFor="correct-1" className="font-normal">A</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value="2" id="correct-2" />
+                                          <Label htmlFor="correct-2" className="font-normal">B</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value="3" id="correct-3" />
+                                          <Label htmlFor="correct-3" className="font-normal">C</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value="4" id="correct-4" />
+                                          <Label htmlFor="correct-4" className="font-normal">D</Label>
+                                        </div>
+                                      </RadioGroup>
+                                    </div>
+                                    <div className="w-32">
+                                      <Label htmlFor="marks">Marks</Label>
+                                      <Input
+                                        id="marks"
+                                        type="number"
+                                        min="0"
+                                        value={editForm.marks}
+                                        onChange={(e) => setEditForm({ ...editForm, marks: parseInt(e.target.value) || 0 })}
+                                        className="mt-1"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              // View Mode
+                              <div className="space-y-4">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <Badge variant="outline">Q{index + 1}</Badge>
+                                      <Badge variant="secondary">{question.marks} mark{question.marks > 1 ? 's' : ''}</Badge>
+                                    </div>
+                                    <p className="text-base font-medium">{question.questionText}</p>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleEditQuestion(question)}
+                                    disabled={editingQuestionId !== null}
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+
+                                <div className="grid gap-2">
+                                  {[
+                                    { label: 'A', text: question.option1, value: 1 },
+                                    { label: 'B', text: question.option2, value: 2 },
+                                    { label: 'C', text: question.option3, value: 3 },
+                                    { label: 'D', text: question.option4, value: 4 },
+                                  ].map((option) => (
+                                    <div
+                                      key={option.value}
+                                      className={`p-3 rounded-lg border ${
+                                        option.value === question.correctOption
+                                          ? 'border-green-500 bg-green-100 dark:bg-green-900/30 font-medium'
+                                          : 'border-border'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium">{option.label}.</span>
+                                        <span>{option.text}</span>
+                                        {option.value === question.correctOption && (
+                                          <CheckCircle className="ml-auto h-4 w-4 text-green-600" />
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                 </div>
               </TabsContent>
             ))}

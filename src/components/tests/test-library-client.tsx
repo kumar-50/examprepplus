@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Search, Filter, Grid, List, Lock, Clock, FileText, Globe, Star, TrendingUp, Trophy } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Filter, Grid, List, Lock, Clock, FileText, Globe, Star, TrendingUp, Trophy, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { SubscriptionModal } from '@/components/subscription/subscription-modal';
 
 interface Test {
   id: string;
@@ -35,6 +36,23 @@ interface TestLibraryClientProps {
 export function TestLibraryClient({ tests }: TestLibraryClientProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
+  const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Fetch subscription status
+  useEffect(() => {
+    const fetchSubscriptionStatus = async () => {
+      try {
+        const response = await fetch('/api/subscriptions/status');
+        const data = await response.json();
+        setHasActiveSubscription(data.hasActiveSubscription || false);
+      } catch (error) {
+        console.error('Error fetching subscription status:', error);
+        setHasActiveSubscription(false);
+      }
+    };
+    fetchSubscriptionStatus();
+  }, []);
 
   // Filter tests based on search and filters
   const filteredTests = tests.filter((test) => {
@@ -45,59 +63,57 @@ export function TestLibraryClient({ tests }: TestLibraryClientProps) {
     return matchesSearch;
   });
 
+  // For free tier users, only show up to 3 free tests
+  const FREE_TEST_LIMIT = 3;
+  const freeTests = filteredTests.filter(t => t.isFree);
+  const premiumTests = filteredTests.filter(t => !t.isFree);
+  
+  // Determine which tests to display based on subscription
+  const displayTests = hasActiveSubscription 
+    ? filteredTests 
+    : freeTests.slice(0, FREE_TEST_LIMIT);
+  
+  const hiddenTestCount = hasActiveSubscription 
+    ? 0 
+    : (freeTests.length - FREE_TEST_LIMIT) + premiumTests.length;
+
   return (
     <div className="space-y-6">
-      {/* Search and Filters */}
-      <div className="bg-card rounded-lg border shadow-sm">
-        <div className="p-6 space-y-6">
-          {/* Search Bar */}
-          <div className="relative w-full">{/* Search content */}
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search for tests by title or topic..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 h-12 text-base bg-background/50 border-2 focus:border-primary/50 transition-colors"
-            />
-          </div>
-
-          {/* View Mode Buttons */}
-          <div className="flex items-center justify-between pt-4 border-t">
-              <span className="text-sm font-medium text-muted-foreground">View Mode</span>
-              <div className="flex gap-2">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                  className="min-w-[80px] sm:min-w-[80px]"
-                >
-                  <Grid className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Grid</span>
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className="min-w-[80px] sm:min-w-[80px]"
-                >
-                  <List className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">List</span>
-                </Button>
-              </div>
-            </div>
+      {/* Search and View Mode - Single Line */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search for tests by title or topic..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-12 h-12 text-base bg-background/50 border focus:border-primary/50 transition-colors"
+          />
+        </div>
+        <div className="flex gap-1">
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'outline'}
+            size="icon"
+            onClick={() => setViewMode('grid')}
+            className="h-12 w-12"
+          >
+            <Grid className="w-5 h-5" />
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'outline'}
+            size="icon"
+            onClick={() => setViewMode('list')}
+            className="h-12 w-12"
+          >
+            <List className="w-5 h-5" />
+          </Button>
         </div>
       </div>
 
-      {/* Results Count & Stats */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-muted-foreground">
-        <div>
-          Showing <span className="font-medium text-foreground">{filteredTests.length}</span> test{filteredTests.length !== 1 ? 's' : ''}
-          {tests.length !== filteredTests.length && (
-            <span> of <span className="font-medium">{tests.length}</span> total</span>
-          )}
-        </div>
-        <div className="flex items-center gap-4">
+      {/* Stats for Premium Users Only */}
+      {hasActiveSubscription && (
+        <div className="flex items-center justify-end gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Globe className="w-4 h-4" />
             <span>{tests.filter(t => t.isFree).length} Free</span>
@@ -107,13 +123,13 @@ export function TestLibraryClient({ tests }: TestLibraryClientProps) {
             <span>{tests.filter(t => !t.isFree).length} Premium</span>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Test Grid/List */}
       <div>
         {/* On mobile, always show grid layout regardless of viewMode */}
         <div className="md:hidden grid grid-cols-1 gap-6">
-          {filteredTests.map((test) => (
+          {displayTests.map((test) => (
             <TestCard key={test.id} test={test} />
           ))}
         </div>
@@ -122,13 +138,13 @@ export function TestLibraryClient({ tests }: TestLibraryClientProps) {
         <div className="hidden md:block">
           {viewMode === 'grid' ? (
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTests.map((test) => (
+              {displayTests.map((test) => (
                 <TestCard key={test.id} test={test} />
               ))}
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredTests.map((test) => (
+              {displayTests.map((test) => (
                 <TestListItem key={test.id} test={test} />
               ))}
             </div>
@@ -136,11 +152,41 @@ export function TestLibraryClient({ tests }: TestLibraryClientProps) {
         </div>
       </div>
 
-      {filteredTests.length === 0 && (
+      {/* Upgrade CTA for Free Tier Users */}
+      {!hasActiveSubscription && hiddenTestCount > 0 && (
+        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 rounded-lg border border-primary/20 p-8 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="bg-primary/10 p-3 rounded-full">
+              <Sparkles className="w-8 h-8 text-primary" />
+            </div>
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Unlock More Tests</h3>
+          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+            Upgrade to Premium to access all mock tests, sectional tests, and practice quizzes with detailed analytics.
+          </p>
+          <Button 
+            size="lg" 
+            onClick={() => setIsModalOpen(true)}
+            className="font-semibold"
+          >
+            <Lock className="w-4 h-4 mr-2" />
+            Upgrade to Premium
+          </Button>
+        </div>
+      )}
+
+      {displayTests.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">No tests found matching your criteria</p>
         </div>
       )}
+
+      {/* Subscription Modal */}
+      <SubscriptionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        planId={null}
+      />
     </div>
   );
 }

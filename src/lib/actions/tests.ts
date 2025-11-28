@@ -5,6 +5,8 @@ import { tests, testQuestions, questions, userTestAttempts, userAnswers, section
 import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/server';
 import { updateWeakTopicsAfterTest } from '@/lib/analytics/weak-topic-analyzer';
+import { hasActiveSubscription } from '@/lib/subscription-utils';
+import { useFeature } from '@/lib/access-control/middleware';
 
 export interface TestFilters {
   search?: string;
@@ -205,6 +207,12 @@ export async function createTestAttempt(testId: string, userId: string) {
   if (!test.isFree) {
     // Check user subscription
     // For now, allow all tests
+  }
+
+  // Track usage for free users when actually starting a test
+  const isPremium = await hasActiveSubscription(userId);
+  if (!isPremium) {
+    await useFeature(userId, 'mock_tests', 1);
   }
 
   const [attempt] = await db

@@ -7,6 +7,11 @@ import { GoalsDashboard } from './goals-dashboard';
 import { AchievementsGrid } from './achievements-grid';
 import { SectionCoverageMap } from './section-coverage-map';
 import { ImprovementMetrics } from './improvement-metrics';
+import { useAccessControl } from '@/hooks/use-access-control';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Lock, Crown } from 'lucide-react';
+import { SubscriptionModal } from '@/components/subscription/subscription-modal';
 
 interface ProgressPageClientProps {
   initialData: {
@@ -24,6 +29,8 @@ interface ProgressPageClientProps {
 
 export function ProgressPageClient({ initialData, onRefresh }: ProgressPageClientProps) {
   const [refreshing, setRefreshing] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const { isPremium, loading: accessLoading } = useAccessControl();
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -42,6 +49,38 @@ export function ProgressPageClient({ initialData, onRefresh }: ProgressPageClien
     sections,
   } = initialData;
 
+  // Limit section coverage for free users (top 3 only)
+  const displayedSections = isPremium 
+    ? sectionCoverageData 
+    : sectionCoverageData.slice(0, 3);
+  const hiddenSectionsCount = sectionCoverageData.length - displayedSections.length;
+
+  // Premium feature placeholder card
+  const PremiumFeatureCard = ({ title, description, icon }: { title: string; description: string; icon?: React.ReactNode }) => (
+    <Card className="relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10" />
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Lock className="w-4 h-4 text-muted-foreground" />
+          {title}
+        </CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          {icon || <Crown className="w-12 h-12 text-primary/40 mb-4" />}
+          <p className="text-muted-foreground mb-4">
+            Upgrade to Premium to unlock this feature
+          </p>
+          <Button onClick={() => setShowSubscriptionModal(true)} size="sm">
+            <Crown className="w-4 h-4 mr-2" />
+            Upgrade Now
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="container mx-auto p-6">
       <div className="mb-8">
@@ -55,7 +94,11 @@ export function ProgressPageClient({ initialData, onRefresh }: ProgressPageClien
         {/* Row 1: Readiness and Streak */}
         <div className="lg:col-span-2">
           {readiness ? (
-            <ExamReadinessCard readiness={readiness} />
+            <ExamReadinessCard 
+              readiness={readiness} 
+              showFullBreakdown={isPremium}
+              onUpgradeClick={() => setShowSubscriptionModal(true)}
+            />
           ) : (
             <div className="text-center py-12 text-muted-foreground">
               <p>Complete some tests to see your readiness score</p>
@@ -80,6 +123,8 @@ export function ProgressPageClient({ initialData, onRefresh }: ProgressPageClien
             todayGoals={todayGoals}
             sections={sections}
             onGoalChanged={handleRefresh}
+            isPremium={isPremium}
+            onUpgradeClick={() => setShowSubscriptionModal(true)}
           />
         </div>
 
@@ -100,8 +145,12 @@ export function ProgressPageClient({ initialData, onRefresh }: ProgressPageClien
         </div>
 
         <div>
-          {sectionCoverageData.length > 0 ? (
-            <SectionCoverageMap sections={sectionCoverageData} />
+          {displayedSections.length > 0 ? (
+            <SectionCoverageMap 
+              sections={displayedSections}
+              hiddenCount={hiddenSectionsCount}
+              onUpgradeClick={() => setShowSubscriptionModal(true)} 
+            />
           ) : (
             <div className="text-center py-12 text-muted-foreground">
               <p>Practice to see section coverage</p>
@@ -109,11 +158,26 @@ export function ProgressPageClient({ initialData, onRefresh }: ProgressPageClien
           )}
         </div>
 
-        {/* Row 4: Improvement Metrics */}
+        {/* Row 4: Improvement Metrics - Premium Only */}
         <div className="lg:col-span-3">
-          <ImprovementMetrics {...improvementMetrics} />
+          {isPremium ? (
+            <ImprovementMetrics {...improvementMetrics} />
+          ) : (
+            <PremiumFeatureCard 
+              title="Improvement Metrics"
+              description="Track your month-over-month progress"
+              icon={<span className="text-5xl mb-4">📈</span>}
+            />
+          )}
         </div>
       </div>
+
+      {/* Subscription Modal */}
+      <SubscriptionModal 
+        isOpen={showSubscriptionModal} 
+        onClose={() => setShowSubscriptionModal(false)}
+        planId={null}
+      />
     </div>
   );
 }

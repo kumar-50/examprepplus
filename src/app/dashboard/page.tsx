@@ -10,6 +10,8 @@ import { StreakGoalsWidget } from '@/components/dashboard/streak-goals-widget';
 import { AchievementHighlights } from '@/components/dashboard/achievement-highlights';
 import { UpcomingEvents } from '@/components/dashboard/upcoming-events';
 import { ErrorBoundary } from '@/components/dashboard/error-boundary';
+import { UpgradeBanner } from '@/components/subscription/upgrade-banner';
+import { SubscriptionStatus } from '@/components/subscription/subscription-status';
 import {
   WelcomeHeaderSkeleton,
   QuickStatsGridSkeleton,
@@ -202,6 +204,9 @@ export default async function DashboardPage() {
         </Suspense>
       </ErrorBoundary>
 
+      {/* Upgrade Banner for Free Users */}
+      <UpgradeBanner />
+
       {/* Quick Stats */}
       <ErrorBoundary section="Stats">
         <Suspense fallback={<QuickStatsGridSkeleton />}>
@@ -225,15 +230,21 @@ export default async function DashboardPage() {
           </Suspense>
         </ErrorBoundary>
 
-        {/* Streak & Goals Widget */}
-        <ErrorBoundary section="Streak & Goals">
-          <Suspense fallback={<StreakGoalsWidgetSkeleton />}>
-            <StreakGoalsWidget
-              streakData={data.streakData}
-              activeGoals={data.activeGoals}
-            />
-          </Suspense>
-        </ErrorBoundary>
+        {/* Right Column: Subscription Status + Streak & Goals */}
+        <div className="space-y-6">
+          {/* Subscription Status */}
+          <SubscriptionStatus />
+
+          {/* Streak & Goals Widget */}
+          <ErrorBoundary section="Streak & Goals">
+            <Suspense fallback={<StreakGoalsWidgetSkeleton />}>
+              <StreakGoalsWidget
+                streakData={data.streakData}
+                activeGoals={data.activeGoals}
+              />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
       </div>
 
       {/* Two Column Layout for Achievements and Events */}

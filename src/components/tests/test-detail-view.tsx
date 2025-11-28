@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Clock, FileText, Star, Lock, Play, TrendingUp, Trophy, AlertCircle, Medal, CheckCircle2, XCircle, Award, Target, BarChart3, Lightbulb, MinusCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Clock, FileText, Star, Lock, Play, TrendingUp, Trophy, AlertCircle, Medal, CheckCircle2, XCircle, Award, Target, BarChart3, Lightbulb, MinusCircle, Crown } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
+import { useAccessControl } from '@/hooks/use-access-control';
+import { SubscriptionModal } from '@/components/subscription/subscription-modal';
 
 interface Test {
   id: string;
@@ -129,10 +131,23 @@ interface TestDetailViewProps {
 }
 
 export function TestDetailView({ test, userId, attemptHistory, leaderboard, analytics, review }: TestDetailViewProps) {
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const { stats, loading: accessLoading, isPremium, canAccess, useFeature } = useAccessControl();
+  
   // Check if user has completed this test
   const hasCompleted = attemptHistory.some(
     attempt => attempt.status === 'submitted' || attempt.status === 'auto_submitted'
   );
+
+  // Check mock test limits for free users
+  const mockTestStats = stats?.mock_tests;
+  const canStartTest = isPremium || (mockTestStats && mockTestStats.remaining > 0);
+  const isLimitReached = !isPremium && mockTestStats && mockTestStats.remaining === 0;
+  
+  // Handle starting a test - just navigate, usage is tracked server-side
+  const handleStartTest = () => {
+    window.location.href = `/dashboard/tests/${test.id}/attempt`;
+  };
   
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -221,6 +236,27 @@ export function TestDetailView({ test, userId, attemptHistory, leaderboard, anal
                   You have already completed this test. Each test can only be attempted once.
                 </AlertDescription>
               </Alert>
+            ) : isLimitReached ? (
+              <Alert className="mb-4 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
+                <Crown className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-800 dark:text-amber-200">
+                  You've used all {mockTestStats?.limit} free mock tests this month.{' '}
+                  <button 
+                    onClick={() => setShowSubscriptionModal(true)}
+                    className="underline font-medium hover:no-underline"
+                  >
+                    Upgrade to Premium
+                  </button>{' '}
+                  for unlimited tests.
+                </AlertDescription>
+              </Alert>
+            ) : !isPremium && mockTestStats && mockTestStats.remaining <= 2 ? (
+              <Alert className="mb-4 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-800 dark:text-amber-200">
+                  {mockTestStats.remaining} mock test{mockTestStats.remaining !== 1 ? 's' : ''} remaining this month.
+                </AlertDescription>
+              </Alert>
             ) : null}
 
             {test.isFree ? (
@@ -229,16 +265,28 @@ export function TestDetailView({ test, userId, attemptHistory, leaderboard, anal
                   <Lock className="w-5 h-5 mr-2" />
                   Test Completed
                 </Button>
+              ) : isLimitReached ? (
+                <Button 
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600" 
+                  size="lg"
+                  onClick={() => setShowSubscriptionModal(true)}
+                >
+                  <Crown className="w-5 h-5 mr-2" />
+                  Upgrade to Premium
+                </Button>
               ) : (
-                <Link href={`/dashboard/tests/${test.id}/attempt`}>
-                  <Button className="w-full" size="lg">
-                    <Play className="w-5 h-5 mr-2" />
-                    Start Test
-                  </Button>
-                </Link>
+                <Button className="w-full" size="lg" onClick={handleStartTest}>
+                  <Play className="w-5 h-5 mr-2" />
+                  Start Test
+                </Button>
               )
             ) : (
-              <Button className="w-full" size="lg" variant="outline">
+              <Button 
+                className="w-full" 
+                size="lg" 
+                variant="outline"
+                onClick={() => setShowSubscriptionModal(true)}
+              >
                 <Lock className="w-5 h-5 mr-2" />
                 Unlock Test
               </Button>
@@ -263,8 +311,38 @@ export function TestDetailView({ test, userId, attemptHistory, leaderboard, anal
               Attempted by {test.totalAttempts.toLocaleString()} users
             </div>
           )}
+
+          {/* Usage Indicator for Free Users */}
+          {!isPremium && mockTestStats && !accessLoading && (
+            <div className="pt-4 border-t">
+              <div className="flex items-center justify-between text-sm mb-2">
+                <span className="text-muted-foreground">Monthly Tests</span>
+                <span className="font-medium">
+                  {mockTestStats.used}/{mockTestStats.limit}
+                </span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className={cn(
+                    "h-full rounded-full transition-all",
+                    mockTestStats.remaining === 0 ? "bg-destructive" :
+                    mockTestStats.remaining <= 1 ? "bg-amber-500" :
+                    "bg-primary"
+                  )}
+                  style={{ width: `${Math.min(100, (mockTestStats.used / mockTestStats.limit) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Subscription Modal */}
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        planId={null}
+      />
     </div>
   );
 }

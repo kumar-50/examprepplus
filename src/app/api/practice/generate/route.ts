@@ -3,6 +3,8 @@ import { requireAuth } from '@/lib/auth/server';
 import { db } from '@/db';
 import { tests, userTestAttempts, testQuestions, questions } from '@/db/schema';
 import { inArray, eq, sql, and } from 'drizzle-orm';
+import { hasActiveSubscription } from '@/lib/subscription-utils';
+import { checkAccess, useFeature } from '@/lib/access-control/middleware';
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,6 +21,24 @@ export async function POST(req: NextRequest) {
         { error: 'Unauthorized' },
         { status: 401 }
       );
+    }
+
+    // Check practice quiz limits for free users
+    const isPremium = await hasActiveSubscription(user.id);
+    if (!isPremium) {
+      const accessCheck = await checkAccess(user.id, 'practice_quizzes');
+      if (!accessCheck.allowed) {
+        return NextResponse.json(
+          { 
+            error: 'Daily limit reached', 
+            message: `You've used all ${accessCheck.limit} practice quizzes for today. Upgrade to Premium for unlimited quizzes.`,
+            upgradeRequired: true,
+            remaining: 0,
+            limit: accessCheck.limit
+          },
+          { status: 403 }
+        );
+      }
     }
 
     // Build filter conditions - only verified and active questions
@@ -119,6 +139,11 @@ export async function POST(req: NextRequest) {
         { error: 'Failed to create practice attempt' },
         { status: 500 }
       );
+    }
+
+    // Track usage for free users after successful creation
+    if (!isPremium) {
+      await useFeature(user.id, 'practice_quizzes', 1);
     }
 
     return NextResponse.json({ sessionId: attempt.id, testId: practiceTest.id });

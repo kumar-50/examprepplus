@@ -23,7 +23,8 @@
     "seed:csv": "node seed-from-csv.js",
     "csv:convert": "node scripts/csv-to-json.js",
     "seed:json": "node scripts/seed-from-json.js",
-    "seed": "npm run csv:convert && npm run seed:json"
+    "seed": "npm run csv:convert && npm run seed:json",
+    "seed:plans": "dotenv -e .env.local -- tsx scripts/seed-subscription-plans.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

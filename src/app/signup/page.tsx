@@ -11,11 +11,28 @@ export const metadata: Metadata = {
   description: 'Create your ExamPrepPlus account',
 }
 
-export default async function SignUpPage() {
+export default async function SignUpPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string; plan?: string; ref?: string }>;
+}) {
+  // Await searchParams for Next.js 15
+  const params = await searchParams;
+  
   // Check if user is already authenticated
   const user = await getCurrentUser()
   
   if (user) {
+    // If user signed up to buy a plan, redirect to checkout page
+    if (params.plan) {
+      redirect(`/checkout?plan=${params.plan}`)
+    }
+    
+    // If there's a redirect URL, go there instead
+    if (params.redirect) {
+      redirect(params.redirect)
+    }
+    
     // Get user profile to check role
     const profile = await getUserProfile(user.id)
     
@@ -40,12 +57,17 @@ export default async function SignUpPage() {
           <div className="space-y-2 text-center md:text-left">
             <h1 className="text-2xl sm:text-3xl font-bold">Create Account</h1>
             <p className="text-sm sm:text-base text-muted-foreground">
-              Start your exam preparation journey today
+              {params.plan 
+                ? 'Create an account to complete your purchase' 
+                : 'Start your exam preparation journey today'}
             </p>
           </div>
 
           {/* Form */}
-          <SignUpForm redirectTo="/dashboard" />
+          <SignUpForm 
+            redirectTo={params.plan ? `/checkout?plan=${params.plan}` : '/dashboard'}
+            referralCode={params.ref}
+          />
 
           {/* Footer */}
           <div className="text-center pt-2">
@@ -85,7 +107,7 @@ export default async function SignUpPage() {
               <div className="text-xs text-muted-foreground">Active Users</div>
             </div>
             <div className="text-center">
-              <div className="text-xl font-bold text-primary">10K+</div>
+              <div className="text-xl font-bold text-primary">5K+</div>
               <div className="text-xs text-muted-foreground">Success Stories</div>
             </div>
             <div className="text-center">

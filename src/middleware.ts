@@ -4,6 +4,27 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function middleware(request: NextRequest) {
   console.log('🔧 Middleware:', request.nextUrl.pathname)
   
+  // Skip authentication for public routes
+  const publicRoutes = [
+    '/checkout',
+    '/api/subscriptions/plans',
+    '/api/auth/session',
+    '/',
+    '/login',
+    '/signup',
+  ]
+  
+  const isPublicRoute = publicRoutes.some(route => 
+    request.nextUrl.pathname === route || 
+    request.nextUrl.pathname.startsWith(route + '/')
+  )
+
+  // For public routes, skip auth check
+  if (isPublicRoute) {
+    console.log('🔧 Middleware: Public route, skipping auth')
+    return NextResponse.next()
+  }
+  
   let supabaseResponse = NextResponse.next({
     request,
   })

@@ -1,12 +1,7 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { ExamReadinessCard } from '@/components/progress/exam-readiness-card';
-import { StreakCalendar } from '@/components/progress/streak-calendar';
-import { GoalsDashboard } from '@/components/progress/goals-dashboard';
-import { AchievementsGrid } from '@/components/progress/achievements-grid';
-import { SectionCoverageMap } from '@/components/progress/section-coverage-map';
-import { ImprovementMetrics } from '@/components/progress/improvement-metrics';
+import { ProgressPageClient } from '@/components/progress/progress-page-client';
 import { db } from '@/db';
 import {
   userTestAttempts,
@@ -263,77 +258,18 @@ export default async function ProgressPage() {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Progress Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
-          Track your exam readiness and celebrate your achievements
-        </p>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Row 1: Readiness and Streak */}
-        <div className="lg:col-span-2">
-          {readiness ? (
-            <ExamReadinessCard readiness={readiness} />
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>Complete some tests to see your readiness score</p>
-            </div>
-          )}
-        </div>
-
-        <div>
-          {streak ? (
-            <StreakCalendar streakData={streak} />
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>Start practicing to build your streak</p>
-            </div>
-          )}
-        </div>
-
-        {/* Row 2: Goals */}
-        <div className="lg:col-span-3">
-          <GoalsDashboard 
-            goals={goals} 
-            todayGoals={todayGoals}
-            sections={allSections}
-            onGoalChanged={refreshProgressPage}
-          />
-        </div>
-
-        {/* Row 3: Achievements and Section Coverage */}
-        <div className="lg:col-span-2">
-          {achievements ? (
-            <AchievementsGrid
-              achievements={achievements.achievements}
-              totalPoints={achievements.totalPoints}
-              unlockedCount={achievements.unlockedCount}
-              totalCount={achievements.totalCount}
-            />
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>Achievements loading...</p>
-            </div>
-          )}
-        </div>
-
-        <div>
-          {sectionCoverageData.length > 0 ? (
-            <SectionCoverageMap sections={sectionCoverageData} />
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>Practice to see section coverage</p>
-            </div>
-          )}
-        </div>
-
-        {/* Row 4: Improvement Metrics */}
-        <div className="lg:col-span-3">
-          <ImprovementMetrics {...improvementMetrics} />
-        </div>
-      </div>
-    </div>
+    <ProgressPageClient
+      initialData={{
+        readiness,
+        streak,
+        goals,
+        achievements,
+        sectionCoverageData,
+        todayGoals,
+        improvementMetrics,
+        sections: allSections,
+      }}
+      onRefresh={refreshProgressPage}
+    />
   );
 }

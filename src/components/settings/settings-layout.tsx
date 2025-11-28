@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { User, Shield, Settings as SettingsIcon, AlertTriangle } from 'lucide-react'
+import { User, Shield, Gift, AlertTriangle, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface SettingsLayoutProps {
@@ -11,7 +11,9 @@ interface SettingsLayoutProps {
 
 const sections = [
   { id: 'profile', label: 'Profile', icon: User },
+  { id: 'subscription', label: 'Subscription', icon: CreditCard },
   { id: 'security', label: 'Security', icon: Shield },
+  { id: 'referral', label: 'Referral Program', icon: Gift },
   { id: 'danger', label: 'Danger Zone', icon: AlertTriangle },
 ]
 

@@ -3,6 +3,8 @@ import { requireAuth } from '@/lib/auth/server';
 import { getTestById, createTestAttempt, getTestQuestions, getTestSyllabus } from '@/lib/actions/tests';
 import { TestAttemptEngine } from '@/components/tests/test-attempt-engine';
 import { TestInstructions } from '@/components/tests/test-instructions';
+import { hasActiveSubscription } from '@/lib/subscription-utils';
+import { checkAccess } from '@/lib/access-control/middleware';
 
 interface TestAttemptPageProps {
   params: Promise<{
@@ -30,6 +32,25 @@ export default async function TestAttemptPage({
   // Check if test is published
   if (!test.isPublished) {
     redirect('/dashboard/tests');
+  }
+
+  // Security check: Block access to premium tests for free users
+  if (!test.isFree) {
+    const isPremium = await hasActiveSubscription(user.id);
+    if (!isPremium) {
+      redirect('/dashboard/tests?access=denied');
+    }
+  }
+
+  // Check mock test limits for free users (only for new attempts)
+  if (!searchAttemptId) {
+    const isPremium = await hasActiveSubscription(user.id);
+    if (!isPremium) {
+      const accessCheck = await checkAccess(user.id, 'mock_tests');
+      if (!accessCheck.allowed) {
+        redirect('/dashboard/tests?limit=reached');
+      }
+    }
   }
 
   // Get or create attempt

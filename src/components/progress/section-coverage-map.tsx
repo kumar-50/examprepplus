@@ -1,6 +1,8 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Crown } from 'lucide-react';
 
 interface SectionCoverageProps {
   sections: Array<{
@@ -10,9 +12,11 @@ interface SectionCoverageProps {
     questionsAttempted: number;
     status: 'mastered' | 'proficient' | 'developing' | 'needs-work' | 'not-attempted';
   }>;
+  hiddenCount?: number;
+  onUpgradeClick?: () => void;
 }
 
-export function SectionCoverageMap({ sections }: SectionCoverageProps) {
+export function SectionCoverageMap({ sections, hiddenCount = 0, onUpgradeClick }: SectionCoverageProps) {
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'mastered':
@@ -98,6 +102,19 @@ export function SectionCoverageMap({ sections }: SectionCoverageProps) {
             />
           </div>
         </div>
+
+        {/* Hidden sections upgrade prompt */}
+        {hiddenCount > 0 && onUpgradeClick && (
+          <div className="mt-4 pt-4 border-t text-center">
+            <p className="text-sm text-muted-foreground mb-2">
+              +{hiddenCount} more section{hiddenCount > 1 ? 's' : ''} available
+            </p>
+            <Button size="sm" variant="outline" onClick={onUpgradeClick}>
+              <Crown className="w-4 h-4 mr-2" />
+              View All Sections
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

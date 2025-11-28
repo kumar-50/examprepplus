@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { requireAuth } from '@/lib/auth/server';
 import { getTestById, getUserAttemptHistory, getTestLeaderboard, getUserTestAnalytics, getAttemptReview } from '@/lib/actions/tests';
 import { TestDetailView } from '@/components/tests/test-detail-view';
+import { hasActiveSubscription } from '@/lib/subscription-utils';
 
 interface TestDetailPageProps {
   params: Promise<{
@@ -23,6 +24,15 @@ export default async function TestDetailPage({ params }: TestDetailPageProps) {
 
   if (!test) {
     notFound();
+  }
+
+  // Security check: Block access to premium tests for free users
+  if (!test.isFree) {
+    const isPremium = await hasActiveSubscription(user.id);
+    if (!isPremium) {
+      // Free user trying to access premium test - redirect to tests page
+      redirect('/dashboard/tests?access=denied');
+    }
   }
 
   // Fetch attempt history, leaderboard, and analytics

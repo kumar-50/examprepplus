@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CreateGoalDialog } from './create-goal-dialog';
 import { Button } from '@/components/ui/button';
-import { Trash2, Check } from 'lucide-react';
+import { Trash2, Check, Crown, Lock } from 'lucide-react';
 import { useState } from 'react';
 
 interface Goal {
@@ -28,11 +28,17 @@ interface GoalsDashboardProps {
   todayGoals: Goal[];
   sections?: Section[];
   onGoalChanged?: () => void | Promise<void>;
+  isPremium?: boolean;
+  onUpgradeClick?: () => void;
 }
 
-export function GoalsDashboard({ goals, todayGoals, sections = [], onGoalChanged }: GoalsDashboardProps) {
+export function GoalsDashboard({ goals, todayGoals, sections = [], onGoalChanged, isPremium = true, onUpgradeClick }: GoalsDashboardProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [completingId, setCompletingId] = useState<string | null>(null);
+  
+  // Free users can only have 1 active goal
+  const activeGoalsCount = goals.filter(g => g.status === 'active').length;
+  const canCreateGoal = isPremium || activeGoalsCount < 1;
   const handleDeleteGoal = async (goalId: string) => {
     if (!confirm('Are you sure you want to delete this goal?')) return;
     
@@ -112,8 +118,33 @@ export function GoalsDashboard({ goals, todayGoals, sections = [], onGoalChanged
             <CardTitle>Today&apos;s Goals</CardTitle>
             <CardDescription>Track your daily study targets</CardDescription>
           </div>
-          <CreateGoalDialog sections={sections} onGoalCreated={onGoalChanged} />
+          {canCreateGoal ? (
+            <CreateGoalDialog sections={sections} onGoalCreated={onGoalChanged} />
+          ) : (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onUpgradeClick}
+              className="gap-2"
+            >
+              <Lock className="w-4 h-4" />
+              Add Goal
+              <Crown className="w-3 h-3 text-primary" />
+            </Button>
+          )}
         </div>
+        {!isPremium && activeGoalsCount >= 1 && (
+          <p className="text-xs text-muted-foreground mt-2">
+            Free users can have 1 active goal. 
+            <Button 
+              variant="link" 
+              className="h-auto p-0 text-xs text-primary ml-1"
+              onClick={onUpgradeClick}
+            >
+              Upgrade for unlimited goals
+            </Button>
+          </p>
+        )}
       </CardHeader>
       <CardContent>
         {todayGoals.length === 0 ? (

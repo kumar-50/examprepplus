@@ -71,6 +71,34 @@
       "when": 1763995009740,
       "tag": "0009_giant_matthew_murdock",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1764166632928,
+      "tag": "0010_add-referrals-analytics",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1764320075976,
+      "tag": "0011_add-promo-codes",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1764325004987,
+      "tag": "0012_add-user-usage",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1764336394317,
+      "tag": "0013_add-global-promo-fields",
+      "breakpoints": true
     }
   ]
 }

@@ -1,14 +1,18 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { getReadinessDisplay, getSectionReadinessColor } from '@/lib/readiness-calculator';
+import { Lock, Crown } from 'lucide-react';
 import type { ReadinessData } from '@/lib/readiness-calculator';
 
 interface ExamReadinessCardProps {
   readiness: ReadinessData;
+  showFullBreakdown?: boolean;
+  onUpgradeClick?: () => void;
 }
 
-export function ExamReadinessCard({ readiness }: ExamReadinessCardProps) {
+export function ExamReadinessCard({ readiness, showFullBreakdown = true, onUpgradeClick }: ExamReadinessCardProps) {
   const display = getReadinessDisplay(readiness.status);
 
   return (
@@ -80,24 +84,39 @@ export function ExamReadinessCard({ readiness }: ExamReadinessCardProps) {
             </div>
           </div>
 
-          {/* Section Readiness */}
+          {/* Section Readiness - Premium Only */}
           {readiness.sectionReadiness.length > 0 && (
             <div className="w-full space-y-2 border-t pt-4">
               <h4 className="font-semibold text-sm">Section Readiness</h4>
-              {readiness.sectionReadiness.map((section) => (
-                <div key={section.sectionId} className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span>{section.sectionName}</span>
-                    <span className="font-medium">{section.readiness}%</span>
+              {showFullBreakdown ? (
+                readiness.sectionReadiness.map((section) => (
+                  <div key={section.sectionId} className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span>{section.sectionName}</span>
+                      <span className="font-medium">{section.readiness}%</span>
+                    </div>
+                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${getSectionReadinessColor(section.readiness)} transition-all duration-500`}
+                        style={{ width: `${section.readiness}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${getSectionReadinessColor(section.readiness)} transition-all duration-500`}
-                      style={{ width: `${section.readiness}%` }}
-                    />
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4">
+                  <Lock className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Section breakdown available with Premium
+                  </p>
+                  {onUpgradeClick && (
+                    <Button size="sm" variant="outline" onClick={onUpgradeClick}>
+                      <Crown className="w-4 h-4 mr-2" />
+                      Unlock Details
+                    </Button>
+                  )}
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>

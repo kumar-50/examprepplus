@@ -9,15 +9,17 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { Insight } from '@/lib/analytics/types';
-import { AlertCircle, CheckCircle2, Info, Lightbulb, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Info, Lightbulb, X, Crown } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
 
 interface LearningInsightsPanelProps {
   insights: Insight[];
+  hiddenCount?: number;
+  onUpgradeClick?: () => void;
 }
 
-export function LearningInsightsPanel({ insights }: LearningInsightsPanelProps) {
+export function LearningInsightsPanel({ insights, hiddenCount = 0, onUpgradeClick }: LearningInsightsPanelProps) {
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
   const getIcon = (type: Insight['type']) => {
@@ -166,6 +168,23 @@ export function LearningInsightsPanel({ insights }: LearningInsightsPanelProps) 
               )}
             </div>
           ))}
+
+          {/* Hidden insights upgrade prompt */}
+          {hiddenCount > 0 && onUpgradeClick && (
+            <div className="rounded-lg border border-dashed border-primary/30 bg-primary/5 p-4 text-center">
+              <Crown className="w-6 h-6 text-primary mx-auto mb-2" />
+              <p className="text-sm font-medium">
+                {hiddenCount} more insight{hiddenCount > 1 ? 's' : ''} available
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 mb-3">
+                Upgrade to Premium to see all personalized recommendations
+              </p>
+              <Button size="sm" variant="outline" onClick={onUpgradeClick}>
+                <Crown className="w-4 h-4 mr-2" />
+                Unlock All Insights
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

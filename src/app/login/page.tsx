@@ -85,7 +85,7 @@ export default async function LoginPage() {
               <div className="text-xs text-muted-foreground">Active Users</div>
             </div>
             <div className="text-center">
-              <div className="text-xl font-bold text-primary">10K+</div>
+              <div className="text-xl font-bold text-primary">5K+</div>
               <div className="text-xs text-muted-foreground">Success Stories</div>
             </div>
             <div className="text-center">

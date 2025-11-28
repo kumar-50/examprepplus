@@ -7,19 +7,25 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import type { ActivityData } from '@/lib/analytics/types';
 import { subDays, format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
 import { useMemo } from 'react';
+import { Crown } from 'lucide-react';
 
 interface ActivityHeatmapProps {
   data: ActivityData[];
+  limitedDays?: number | undefined;
+  onUpgradeClick?: () => void;
 }
 
-export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
+export function ActivityHeatmap({ data, limitedDays, onUpgradeClick }: ActivityHeatmapProps) {
+  const displayDays = limitedDays || 365;
+  
   const heatmapData = useMemo(() => {
-    // Get last 365 days
+    // Get days based on limit
     const endDate = new Date();
-    const startDate = subDays(endDate, 364);
+    const startDate = subDays(endDate, displayDays - 1);
     
     // Generate all days in range
     const allDays = eachDayOfInterval({ start: startDate, end: endDate });
@@ -47,7 +53,7 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
     });
     
     return weeks;
-  }, [data]);
+  }, [data, displayDays]);
 
   const getIntensity = (activity: ActivityData | null): string => {
     if (!activity || activity.testCount === 0) return 'bg-muted';
@@ -86,7 +92,7 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
       <CardHeader>
         <CardTitle>Activity Calendar</CardTitle>
         <CardDescription>
-          {totalDays} active days in the last year
+          {totalDays} active days {limitedDays ? `in the last ${limitedDays} days` : 'in the last year'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -172,6 +178,19 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
             <p className="text-xs text-muted-foreground">Avg Accuracy</p>
           </div>
         </div>
+
+        {/* Upgrade prompt for limited view */}
+        {limitedDays && onUpgradeClick && (
+          <div className="mt-4 pt-4 border-t text-center">
+            <p className="text-sm text-muted-foreground mb-2">
+              Showing last {limitedDays} days only
+            </p>
+            <Button size="sm" variant="outline" onClick={onUpgradeClick}>
+              <Crown className="w-4 h-4 mr-2" />
+              View Full Year Calendar
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
